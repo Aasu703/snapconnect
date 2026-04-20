@@ -153,6 +153,15 @@ class UploadNotifier extends StateNotifier<UploadState> {
       albumId: albumId,
       user: user,
       title: title,
+      onProgress: (items, uploadedCount) {
+        state = state.copyWith(
+          items: items,
+          isUploading: true,
+          uploadedCount: uploadedCount,
+          totalCount: items.length,
+          error: null,
+        );
+      },
     );
 
     state = nextState;
@@ -178,16 +187,20 @@ class ReactionState {
   final Map<String, String> tooltipByEmoji;
   final bool isLoading;
 
+  static const Object _unset = Object();
+
   /// Returns a copy with selective updates.
   ReactionState copyWith({
     Map<String, int>? counts,
-    String? currentEmoji,
+    Object? currentEmoji = _unset,
     Map<String, String>? tooltipByEmoji,
     bool? isLoading,
   }) {
     return ReactionState(
       counts: counts ?? this.counts,
-      currentEmoji: currentEmoji,
+      currentEmoji: identical(currentEmoji, _unset)
+          ? this.currentEmoji
+          : currentEmoji as String?,
       tooltipByEmoji: tooltipByEmoji ?? this.tooltipByEmoji,
       isLoading: isLoading ?? this.isLoading,
     );

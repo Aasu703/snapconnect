@@ -137,6 +137,7 @@ class PhotosController {
     required String albumId,
     required UserModel user,
     String? title,
+    void Function(List<UploadItem> items, int uploadedCount)? onProgress,
   }) async {
     var updatedItems = List<UploadItem>.from(items);
     var uploaded = 0;
@@ -153,6 +154,7 @@ class PhotosController {
         status: UploadItemStatus.uploading,
         error: null,
       );
+      onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
 
       try {
         final cloudinaryUrl = await CloudinaryService.instance.uploadXFile(
@@ -179,11 +181,13 @@ class PhotosController {
           uploadedUrl: cloudinaryUrl,
         );
         uploaded++;
+        onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
       } catch (error) {
         updatedItems[i] = updatedItems[i].copyWith(
           status: UploadItemStatus.error,
           error: error.toString(),
         );
+        onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
       }
     }
 
