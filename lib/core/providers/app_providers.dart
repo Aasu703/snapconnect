@@ -41,7 +41,9 @@ class SessionNotifier extends StateNotifier<UserModel?> {
 /// Theme notifier that persists dark mode preference.
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   ThemeModeNotifier()
-      : super(SessionService.instance.isDarkMode() ? ThemeMode.dark : ThemeMode.light);
+    : super(
+        SessionService.instance.isDarkMode() ? ThemeMode.dark : ThemeMode.light,
+      );
 
   /// Toggles light and dark mode and persists preference.
   Future<void> toggle() async {
@@ -65,8 +67,13 @@ class UploadNotifier extends StateNotifier<UploadState> {
       return;
     }
 
-    final merged = <UploadItem>[...state.items, ...files.map((file) => UploadItem(file: file))];
-    final validation = await _photosController.validateFiles(merged.map((item) => item.file).toList());
+    final merged = <UploadItem>[
+      ...state.items,
+      ...files.map((file) => UploadItem(file: file)),
+    ];
+    final validation = await _photosController.validateFiles(
+      merged.map((item) => item.file).toList(),
+    );
     if (validation != null) {
       state = state.copyWith(error: validation);
       return;
@@ -87,13 +94,19 @@ class UploadNotifier extends StateNotifier<UploadState> {
     }
 
     final merged = <UploadItem>[...state.items, UploadItem(file: file)];
-    final validation = await _photosController.validateFiles(merged.map((item) => item.file).toList());
+    final validation = await _photosController.validateFiles(
+      merged.map((item) => item.file).toList(),
+    );
     if (validation != null) {
       state = state.copyWith(error: validation);
       return;
     }
 
-    state = state.copyWith(items: merged, totalCount: merged.length, error: null);
+    state = state.copyWith(
+      items: merged,
+      totalCount: merged.length,
+      error: null,
+    );
   }
 
   /// Removes one selected item.
@@ -114,7 +127,10 @@ class UploadNotifier extends StateNotifier<UploadState> {
     }
 
     final items = [...state.items];
-    items[index] = items[index].copyWith(status: UploadItemStatus.pending, error: null);
+    items[index] = items[index].copyWith(
+      status: UploadItemStatus.pending,
+      error: null,
+    );
     state = state.copyWith(items: items, error: null);
 
     await uploadAll(albumId: albumId, user: user, title: title);
@@ -180,7 +196,8 @@ class ReactionState {
 
 /// Manages loading and toggling reactions for one photo ID.
 class ReactionsNotifier extends StateNotifier<ReactionState> {
-  ReactionsNotifier({required this.photoId, required this.ref}) : super(const ReactionState()) {
+  ReactionsNotifier({required this.photoId, required this.ref})
+    : super(const ReactionState()) {
     unawaited(load());
   }
 
@@ -212,14 +229,17 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
 
     for (final reaction in reactions) {
       counts[reaction.emoji] = (counts[reaction.emoji] ?? 0) + 1;
-      namesByEmoji.putIfAbsent(reaction.emoji, () => <String>[]).add(reaction.userName);
+      namesByEmoji
+          .putIfAbsent(reaction.emoji, () => <String>[])
+          .add(reaction.userName);
       if (user != null && reaction.userId == user.id) {
         current = reaction.emoji;
       }
     }
 
     final tooltips = <String, String>{
-      for (final entry in namesByEmoji.entries) entry.key: _buildTooltip(entry.value),
+      for (final entry in namesByEmoji.entries)
+        entry.key: _buildTooltip(entry.value),
     };
 
     state = ReactionState(
@@ -271,7 +291,10 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
           .maybeSingle();
 
       if (existing != null && existing['emoji'] == emoji) {
-        await SupabaseService.client.from('reactions').delete().eq('id', existing['id']);
+        await SupabaseService.client
+            .from('reactions')
+            .delete()
+            .eq('id', existing['id']);
       } else if (existing != null) {
         await SupabaseService.client
             .from('reactions')
@@ -348,7 +371,8 @@ final albumsProvider = FutureProvider<List<AlbumModel>>(
 
 /// Details provider for one album photo list.
 final albumDetailProvider = FutureProvider.family<List<PhotoModel>, String>(
-  (ref, albumId) => ref.watch(albumsControllerProvider).fetchAlbumPhotos(albumId),
+  (ref, albumId) =>
+      ref.watch(albumsControllerProvider).fetchAlbumPhotos(albumId),
 );
 
 /// Upload workflow state provider.
@@ -372,13 +396,15 @@ final myPartiesProvider = FutureProvider<List<PartyModel>>((ref) {
 
 /// Detail provider for one party identified by join code.
 final partyDetailProvider = FutureProvider.family<PartyDetailData?, String>(
-  (ref, joinCode) => ref.watch(partyControllerProvider).fetchPartyDetail(joinCode),
+  (ref, joinCode) =>
+      ref.watch(partyControllerProvider).fetchPartyDetail(joinCode),
 );
 
 /// Reactions provider for one photo.
-final reactionsProvider = StateNotifierProvider.family<ReactionsNotifier, ReactionState, String>(
-  (ref, photoId) => ReactionsNotifier(photoId: photoId, ref: ref),
-);
+final reactionsProvider =
+    StateNotifierProvider.family<ReactionsNotifier, ReactionState, String>(
+      (ref, photoId) => ReactionsNotifier(photoId: photoId, ref: ref),
+    );
 
 /// Profile stats provider for current user.
 final profileProvider = FutureProvider<ProfileStats>((ref) {

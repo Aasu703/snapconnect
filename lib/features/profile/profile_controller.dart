@@ -19,7 +19,11 @@ class ProfileController {
   /// Loads profile stats from Supabase tables.
   Future<ProfileStats> fetchStats(String userId) async {
     if (!SupabaseService.isInitialized) {
-      return const ProfileStats(photosUploaded: 0, albumsCreated: 0, partiesJoined: 0);
+      return const ProfileStats(
+        photosUploaded: 0,
+        albumsCreated: 0,
+        partiesJoined: 0,
+      );
     }
 
     final photos = await SupabaseService.client
@@ -52,9 +56,11 @@ class ProfileController {
     }
 
     if (SupabaseService.isInitialized && (user.email?.isNotEmpty ?? false)) {
-      await SupabaseService.client
-          .from('users')
-          .upsert({'id': user.id, 'name': value, 'email': user.email});
+      await SupabaseService.client.from('users').upsert({
+        'id': user.id,
+        'name': value,
+        'email': user.email,
+      });
     }
 
     return user.copyWith(name: value);

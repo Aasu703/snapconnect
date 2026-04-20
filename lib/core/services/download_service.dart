@@ -22,7 +22,9 @@ final class DownloadService {
     void Function(int received, int total)? onProgress,
   }) async {
     if (kIsWeb) {
-      Fluttertoast.showToast(msg: 'On web, open the image URL and save from browser.');
+      Fluttertoast.showToast(
+        msg: 'On web, open the image URL and save from browser.',
+      );
       return url;
     }
 
@@ -64,7 +66,9 @@ final class DownloadService {
     }
 
     if (kIsWeb) {
-      Fluttertoast.showToast(msg: 'ZIP download is available on mobile and desktop.');
+      Fluttertoast.showToast(
+        msg: 'ZIP download is available on mobile and desktop.',
+      );
       return null;
     }
 
@@ -122,7 +126,10 @@ final class DownloadService {
       return true;
     }
 
-    if (Platform.isIOS || Platform.isMacOS || Platform.isLinux || Platform.isWindows) {
+    if (Platform.isIOS ||
+        Platform.isMacOS ||
+        Platform.isLinux ||
+        Platform.isWindows) {
       return true;
     }
 

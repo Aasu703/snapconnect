@@ -2,8 +2,7 @@
 final class Validators {
   Validators._();
 
-  static final RegExp _emailRegex =
-      RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$');
+  static final RegExp _emailRegex = RegExp(r'^[\w\-.]+@([\w-]+\.)+[\w-]{2,4}$');
 
   /// Validates required display names.
   static String? validateName(String? value) {

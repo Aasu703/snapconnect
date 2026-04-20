@@ -28,9 +28,19 @@ class EmptyState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.65)),
+            Icon(
+              icon,
+              size: 64,
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.65),
+            ),
             const Gap(16),
-            Text(title, style: textTheme.titleLarge, textAlign: TextAlign.center),
+            Text(
+              title,
+              style: textTheme.titleLarge,
+              textAlign: TextAlign.center,
+            ),
             const Gap(8),
             Text(
               subtitle,
@@ -39,10 +49,7 @@ class EmptyState extends StatelessWidget {
             ),
             if (actionLabel != null && onAction != null) ...[
               const Gap(20),
-              FilledButton(
-                onPressed: onAction,
-                child: Text(actionLabel!),
-              ),
+              FilledButton(onPressed: onAction, child: Text(actionLabel!)),
             ],
           ],
         ),

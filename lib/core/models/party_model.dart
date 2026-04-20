@@ -38,7 +38,9 @@ class PartyModel {
       albumId: (json['album_id'] ?? '').toString(),
       isActive: json['is_active'] == null ? true : json['is_active'] as bool,
       createdAt: _parseDate(json['created_at']),
-      expiresAt: json['expires_at'] == null ? null : _parseDate(json['expires_at']),
+      expiresAt: json['expires_at'] == null
+          ? null
+          : _parseDate(json['expires_at']),
       memberCount: _parseCount(json['member_count']),
     );
   }

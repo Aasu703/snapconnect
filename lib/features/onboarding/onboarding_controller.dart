@@ -6,11 +6,9 @@ import 'package:uuid/uuid.dart';
 
 /// Handles first-time identity setup and session persistence.
 class OnboardingController {
-  OnboardingController({
-    SessionService? sessionService,
-    Uuid? uuid,
-  })  : _sessionService = sessionService ?? SessionService.instance,
-        _uuid = uuid ?? const Uuid();
+  OnboardingController({SessionService? sessionService, Uuid? uuid})
+    : _sessionService = sessionService ?? SessionService.instance,
+      _uuid = uuid ?? const Uuid();
 
   final SessionService _sessionService;
   final Uuid _uuid;
@@ -22,9 +20,12 @@ class OnboardingController {
   }) async {
     final displayName = name.trim();
     final normalizedEmail = email?.trim().toLowerCase();
-    final colorSeed = (normalizedEmail?.isNotEmpty ?? false) ? normalizedEmail! : displayName;
+    final colorSeed = (normalizedEmail?.isNotEmpty ?? false)
+        ? normalizedEmail!
+        : displayName;
 
-    if (SupabaseService.isInitialized && (normalizedEmail?.isNotEmpty ?? false)) {
+    if (SupabaseService.isInitialized &&
+        (normalizedEmail?.isNotEmpty ?? false)) {
       final client = SupabaseService.client;
 
       try {

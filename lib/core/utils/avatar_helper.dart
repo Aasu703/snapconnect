@@ -8,14 +8,16 @@ final class AvatarHelper {
   /// Picks a deterministic color from input text.
   static Color colorFromSeed(String value) {
     final clean = value.trim().toLowerCase();
-    final index = clean.isEmpty ? 0 : clean.hashCode.abs() % AppColors.avatarColors.length;
+    final index = clean.isEmpty
+        ? 0
+        : clean.hashCode.abs() % AppColors.avatarColors.length;
     return AppColors.avatarColors[index];
   }
 
   /// Converts deterministic avatar color to a hex string.
   static String colorHexFromSeed(String value) {
     final color = colorFromSeed(value);
-    return '#${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    return '#${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
   }
 
   /// Converts a persisted color hex string into a color instance.
@@ -31,14 +33,20 @@ final class AvatarHelper {
 
   /// Returns two-letter initials from a display name.
   static String initials(String name) {
-    final parts = name.trim().split(RegExp(r'\s+')).where((value) => value.isNotEmpty).toList();
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((value) => value.isNotEmpty)
+        .toList();
     if (parts.isEmpty) {
       return 'G';
     }
 
     if (parts.length == 1) {
       final part = parts.first;
-      return part.length == 1 ? part.toUpperCase() : part.substring(0, 2).toUpperCase();
+      return part.length == 1
+          ? part.toUpperCase()
+          : part.substring(0, 2).toUpperCase();
     }
 
     return (parts.first[0] + parts.last[0]).toUpperCase();

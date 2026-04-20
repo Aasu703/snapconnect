@@ -33,7 +33,8 @@ final class SupabaseService {
   }
 
   /// Returns the client if available, or null when uninitialized.
-  static SupabaseClient? get maybeClient => _initialized ? Supabase.instance.client : null;
+  static SupabaseClient? get maybeClient =>
+      _initialized ? Supabase.instance.client : null;
 }
 
 /// Shortcut getter used by repositories and controllers.

@@ -11,7 +11,10 @@ final class DateFormatter {
   }
 
   /// Formats a date into a readable absolute string.
-  static String absolute(DateTime dateTime, {String pattern = 'MMM d, y • h:mm a'}) {
+  static String absolute(
+    DateTime dateTime, {
+    String pattern = 'MMM d, y • h:mm a',
+  }) {
     return DateFormat(pattern).format(dateTime);
   }
 }

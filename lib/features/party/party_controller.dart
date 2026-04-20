@@ -118,7 +118,9 @@ class PartyController {
         .from('parties')
         .insert({
           'name': name.trim(),
-          'description': description?.trim().isEmpty ?? true ? null : description!.trim(),
+          'description': description?.trim().isEmpty ?? true
+              ? null
+              : description!.trim(),
           'host_id': host.id,
           'host_name': host.name,
           'join_code': joinCode,

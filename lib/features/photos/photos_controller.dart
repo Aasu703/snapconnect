@@ -78,7 +78,8 @@ class UploadState {
 
 /// Handles picking media and sequential cloud/database uploads.
 class PhotosController {
-  PhotosController({ImagePicker? imagePicker}) : _imagePicker = imagePicker ?? ImagePicker();
+  PhotosController({ImagePicker? imagePicker})
+    : _imagePicker = imagePicker ?? ImagePicker();
 
   final ImagePicker _imagePicker;
 
@@ -103,7 +104,9 @@ class PhotosController {
           .toList();
     }
 
-    final files = await _imagePicker.pickMultiImage(limit: AppConstants.maxUploadPhotos);
+    final files = await _imagePicker.pickMultiImage(
+      limit: AppConstants.maxUploadPhotos,
+    );
     return files;
   }
 
@@ -146,10 +149,15 @@ class PhotosController {
         continue;
       }
 
-      updatedItems[i] = item.copyWith(status: UploadItemStatus.uploading, error: null);
+      updatedItems[i] = item.copyWith(
+        status: UploadItemStatus.uploading,
+        error: null,
+      );
 
       try {
-        final cloudinaryUrl = await CloudinaryService.instance.uploadXFile(item.file);
+        final cloudinaryUrl = await CloudinaryService.instance.uploadXFile(
+          item.file,
+        );
         if (cloudinaryUrl == null) {
           throw Exception('Failed to upload to Cloudinary.');
         }
