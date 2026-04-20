@@ -45,7 +45,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: onboardingDone ? '/' : '/onboarding',
     redirect: (context, state) {
-      final onboardingComplete = SessionService.instance.isOnboardingCompleted();
+      final onboardingComplete = SessionService.instance
+          .isOnboardingCompleted();
 
       if (!onboardingComplete && state.matchedLocation != '/onboarding') {
         return '/onboarding';
@@ -67,10 +68,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return _ShellScaffold(location: state.matchedLocation, child: child);
         },
         routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => const AlbumsScreen(),
-          ),
+          GoRoute(path: '/', builder: (context, state) => const AlbumsScreen()),
           GoRoute(
             path: '/album/create',
             builder: (context, state) => const CreateAlbumScreen(),
@@ -85,7 +83,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/upload',
             builder: (context, state) {
-              return UploadScreen(initialAlbumId: state.uri.queryParameters['albumId']);
+              return UploadScreen(
+                initialAlbumId: state.uri.queryParameters['albumId'],
+              );
             },
           ),
           GoRoute(
@@ -106,7 +106,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/join/:joinCode',
             builder: (context, state) {
-              return JoinPartyScreen(joinCode: state.pathParameters['joinCode']);
+              return JoinPartyScreen(
+                joinCode: state.pathParameters['joinCode'],
+              );
             },
           ),
           GoRoute(
@@ -128,10 +130,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 });
 
 class _ShellScaffold extends StatelessWidget {
-  const _ShellScaffold({
-    required this.location,
-    required this.child,
-  });
+  const _ShellScaffold({required this.location, required this.child});
 
   final String location;
   final Widget child;

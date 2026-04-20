@@ -35,9 +35,7 @@ class AlbumsScreen extends ConsumerWidget {
     final albumsAsync = ref.watch(albumsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Albums'),
-      ),
+      appBar: AppBar(title: const Text('Albums')),
       body: RefreshIndicator(
         onRefresh: () async => ref.invalidate(albumsProvider),
         child: albumsAsync.when(
@@ -46,8 +44,8 @@ class AlbumsScreen extends ConsumerWidget {
             final columns = width >= 1200
                 ? 4
                 : width >= 840
-                    ? 3
-                    : 2;
+                ? 3
+                : 2;
             return LoadingSkeleton(columns: columns);
           },
           error: (error, _) {
@@ -63,7 +61,8 @@ class AlbumsScreen extends ConsumerWidget {
             if (albums.isEmpty) {
               return EmptyState(
                 title: 'No albums yet',
-                subtitle: 'Create your first album and start collecting memories.',
+                subtitle:
+                    'Create your first album and start collecting memories.',
                 icon: Icons.photo_library_outlined,
                 actionLabel: 'Create your first album',
                 onAction: () => _createAlbum(context, ref),
@@ -75,8 +74,8 @@ class AlbumsScreen extends ConsumerWidget {
                 final columns = constraints.maxWidth >= 1200
                     ? 4
                     : constraints.maxWidth >= 840
-                        ? 3
-                        : 2;
+                    ? 3
+                    : 2;
 
                 return MasonryGridView.count(
                   padding: const EdgeInsets.all(16),
@@ -87,9 +86,9 @@ class AlbumsScreen extends ConsumerWidget {
                   itemBuilder: (context, index) {
                     final album = albums[index];
                     return AlbumCard(
-                      album: album,
-                      onTap: () => context.push('/album/${album.id}'),
-                    )
+                          album: album,
+                          onTap: () => context.push('/album/${album.id}'),
+                        )
                         .animate(delay: Duration(milliseconds: 30 * index))
                         .fadeIn(duration: 200.ms)
                         .scaleXY(begin: 0.95, end: 1);

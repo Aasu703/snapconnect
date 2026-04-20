@@ -58,7 +58,11 @@ class AppNavbar extends StatelessWidget {
                       color: AppColors.primary,
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 30),
+                    child: const Icon(
+                      Icons.camera_alt_rounded,
+                      color: Colors.white,
+                      size: 30,
+                    ),
                   ),
                 ),
               ),
@@ -104,7 +108,9 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primary : Theme.of(context).colorScheme.onSurfaceVariant;
+    final color = selected
+        ? AppColors.primary
+        : Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Expanded(
       child: InkWell(

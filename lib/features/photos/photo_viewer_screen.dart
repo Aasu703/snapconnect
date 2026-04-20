@@ -41,7 +41,9 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
       return;
     }
 
-    final initialIndex = photos.indexWhere((photo) => photo.id == widget.photoId);
+    final initialIndex = photos.indexWhere(
+      (photo) => photo.id == widget.photoId,
+    );
     _currentIndex = initialIndex < 0 ? 0 : initialIndex;
     _pageController = PageController(initialPage: _currentIndex);
     _initialized = true;
@@ -87,14 +89,17 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
                 PageView.builder(
                   controller: _pageController,
                   itemCount: photos.length,
-                  onPageChanged: (index) => setState(() => _currentIndex = index),
+                  onPageChanged: (index) =>
+                      setState(() => _currentIndex = index),
                   itemBuilder: (context, index) {
                     final item = photos[index];
                     return Hero(
                       tag: 'photo-${item.id}',
                       child: PhotoView(
                         imageProvider: NetworkImage(item.url),
-                        backgroundDecoration: const BoxDecoration(color: Colors.black),
+                        backgroundDecoration: const BoxDecoration(
+                          color: Colors.black,
+                        ),
                       ),
                     );
                   },
@@ -106,16 +111,26 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
                         children: [
                           IconButton(
                             onPressed: () => context.pop(),
-                            icon: const Icon(Icons.arrow_back, color: Colors.white),
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                            ),
                           ),
                           const Spacer(),
                           IconButton(
-                            onPressed: () => DownloadService.instance.downloadSinglePhoto(photo.url),
-                            icon: const Icon(Icons.download_rounded, color: Colors.white),
+                            onPressed: () => DownloadService.instance
+                                .downloadSinglePhoto(photo.url),
+                            icon: const Icon(
+                              Icons.download_rounded,
+                              color: Colors.white,
+                            ),
                           ),
                           IconButton(
                             onPressed: () => Share.share(photo.url),
-                            icon: const Icon(Icons.share_outlined, color: Colors.white),
+                            icon: const Icon(
+                              Icons.share_outlined,
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -126,7 +141,9 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.62),
                           border: Border(
-                            top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                            top: BorderSide(
+                              color: Colors.white.withValues(alpha: 0.1),
+                            ),
                           ),
                         ),
                         child: Column(

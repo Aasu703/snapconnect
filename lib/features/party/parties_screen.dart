@@ -138,9 +138,14 @@ class _PartyListView extends StatelessWidget {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.primaryContainer,
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
@@ -154,7 +159,8 @@ class _PartyListView extends StatelessWidget {
                       Text('Host: ${party.hostName}'),
                       const SizedBox(height: 4),
                       Text('Members: ${party.memberCount}'),
-                      if (party.description != null && party.description!.isNotEmpty) ...[
+                      if (party.description != null &&
+                          party.description!.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Text(
                           party.description!,

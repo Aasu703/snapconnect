@@ -80,10 +80,9 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
                       return;
                     }
 
-                    await ref.read(albumsControllerProvider).deletePhoto(
-                          photoId: photo.id,
-                          ownerUserId: user.id,
-                        );
+                    await ref
+                        .read(albumsControllerProvider)
+                        .deletePhoto(photoId: photo.id, ownerUserId: user.id);
                     ref.invalidate(albumDetailProvider(widget.albumId));
                   },
                 ),
@@ -119,7 +118,9 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
             tooltip: 'Download all',
             icon: const Icon(Icons.download_for_offline_outlined),
             onPressed: () async {
-              final photos = await ref.read(albumDetailProvider(widget.albumId).future);
+              final photos = await ref.read(
+                albumDetailProvider(widget.albumId).future,
+              );
               await _downloadAll(photos);
             },
           ),
@@ -133,7 +134,8 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(albumDetailProvider(widget.albumId)),
+        onRefresh: () async =>
+            ref.invalidate(albumDetailProvider(widget.albumId)),
         child: photosAsync.when(
           loading: () => const LoadingSkeleton(),
           error: (error, _) => EmptyState(
@@ -150,15 +152,15 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
                 subtitle: 'Upload your first photo to get started.',
                 icon: Icons.photo_outlined,
                 actionLabel: 'Upload photo',
-                onAction: () => context.push('/upload?albumId=${widget.albumId}'),
+                onAction: () =>
+                    context.push('/upload?albumId=${widget.albumId}'),
               );
             }
 
             return PhotoGrid(
               photos: photos,
-              onPhotoTap: (photo) => context.push(
-                '/photo/${photo.id}?albumId=${photo.albumId}',
-              ),
+              onPhotoTap: (photo) =>
+                  context.push('/photo/${photo.id}?albumId=${photo.albumId}'),
               onPhotoLongPress: _showPhotoActions,
               footerBuilder: (photo) => ReactionBar(photoId: photo.id),
             );

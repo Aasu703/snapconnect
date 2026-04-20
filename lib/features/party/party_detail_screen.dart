@@ -47,11 +47,10 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
     final detailAsync = ref.watch(partyDetailProvider(widget.joinCode));
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Party Details'),
-      ),
+      appBar: AppBar(title: const Text('Party Details')),
       body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(partyDetailProvider(widget.joinCode)),
+        onRefresh: () async =>
+            ref.invalidate(partyDetailProvider(widget.joinCode)),
         child: detailAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => EmptyState(
@@ -59,7 +58,8 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
             subtitle: error.toString(),
             icon: Icons.error_outline,
             actionLabel: 'Retry',
-            onAction: () => ref.invalidate(partyDetailProvider(widget.joinCode)),
+            onAction: () =>
+                ref.invalidate(partyDetailProvider(widget.joinCode)),
           ),
           data: (detail) {
             if (detail == null) {
@@ -71,12 +71,16 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
             }
 
             final party = detail.party;
-            final joinUrl = '${AppConstants.webJoinBaseUrl}/join/${party.joinCode}';
+            final joinUrl =
+                '${AppConstants.webJoinBaseUrl}/join/${party.joinCode}';
 
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text(party.name, style: Theme.of(context).textTheme.headlineMedium),
+                Text(
+                  party.name,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
                 const SizedBox(height: 8),
                 const LiveBadge(),
                 const SizedBox(height: 14),
@@ -94,10 +98,17 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                     height: 34,
                     child: Stack(
                       children: [
-                        for (var i = 0; i < detail.members.length.clamp(0, 6); i++)
+                        for (
+                          var i = 0;
+                          i < detail.members.length.clamp(0, 6);
+                          i++
+                        )
                           Positioned(
                             left: i * 22,
-                            child: AvatarWidget(name: detail.members[i].userName, size: 32),
+                            child: AvatarWidget(
+                              name: detail.members[i].userName,
+                              size: 32,
+                            ),
                           ),
                       ],
                     ),
@@ -132,7 +143,8 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                     OutlinedButton.icon(
                       onPressed: () {
                         Fluttertoast.showToast(
-                          msg: 'QR download tip: take screenshot or share the join URL.',
+                          msg:
+                              'QR download tip: take screenshot or share the join URL.',
                         );
                       },
                       icon: const Icon(Icons.download_rounded),
@@ -141,13 +153,18 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Text('Live Photos', style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  'Live Photos',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const SizedBox(height: 8),
                 SizedBox(
                   height: MediaQuery.sizeOf(context).height * 0.55,
                   child: PhotoGrid(
                     photos: detail.photos,
-                    onPhotoTap: (photo) => context.push('/photo/${photo.id}?albumId=${photo.albumId}'),
+                    onPhotoTap: (photo) => context.push(
+                      '/photo/${photo.id}?albumId=${photo.albumId}',
+                    ),
                     footerBuilder: (photo) => ReactionBar(photoId: photo.id),
                   ),
                 ),
@@ -162,7 +179,8 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
             return null;
           }
           return FloatingActionButton(
-            onPressed: () => context.push('/upload?albumId=${detail.party.albumId}'),
+            onPressed: () =>
+                context.push('/upload?albumId=${detail.party.albumId}'),
             child: const Icon(Icons.camera_alt_rounded),
           );
         },

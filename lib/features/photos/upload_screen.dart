@@ -32,7 +32,9 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
   void initState() {
     super.initState();
     _selectedAlbumId = widget.initialAlbumId;
-    _confettiController = ConfettiController(duration: const Duration(seconds: 2));
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _ensureIdentity();
@@ -72,15 +74,17 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
       return;
     }
 
-    await ref.read(uploadProvider.notifier).uploadAll(
-          albumId: albumId,
-          user: user,
-          title: _titleController.text,
-        );
+    await ref
+        .read(uploadProvider.notifier)
+        .uploadAll(albumId: albumId, user: user, title: _titleController.text);
 
     final state = ref.read(uploadProvider);
-    final uploaded = state.items.where((item) => item.status == UploadItemStatus.done).length;
-    final failed = state.items.where((item) => item.status == UploadItemStatus.error).length;
+    final uploaded = state.items
+        .where((item) => item.status == UploadItemStatus.done)
+        .length;
+    final failed = state.items
+        .where((item) => item.status == UploadItemStatus.error)
+        .length;
 
     if (uploaded > 0) {
       _confettiController.play();
@@ -93,7 +97,9 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
     }
 
     if (failed > 0) {
-      Fluttertoast.showToast(msg: '$failed photos failed. Tap retry on failed items.');
+      Fluttertoast.showToast(
+        msg: '$failed photos failed. Tap retry on failed items.',
+      );
     }
   }
 
@@ -149,7 +155,9 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                     onChanged: uploadState.isUploading
                         ? null
                         : (value) => setState(() => _selectedAlbumId = value),
-                    decoration: const InputDecoration(labelText: 'Select Album'),
+                    decoration: const InputDecoration(
+                      labelText: 'Select Album',
+                    ),
                   ),
                   const Gap(12),
                   TextFormField(
@@ -167,14 +175,18 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                       FilledButton.icon(
                         onPressed: uploadState.isUploading
                             ? null
-                            : () => ref.read(uploadProvider.notifier).pickPhotos(),
+                            : () => ref
+                                  .read(uploadProvider.notifier)
+                                  .pickPhotos(),
                         icon: const Icon(Icons.photo_library_outlined),
                         label: const Text('Pick Photos'),
                       ),
                       OutlinedButton.icon(
                         onPressed: uploadState.isUploading
                             ? null
-                            : () => ref.read(uploadProvider.notifier).capturePhoto(),
+                            : () => ref
+                                  .read(uploadProvider.notifier)
+                                  .capturePhoto(),
                         icon: const Icon(Icons.camera_alt_outlined),
                         label: const Text('Take Photo'),
                       ),
@@ -188,17 +200,22 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                         LinearProgressIndicator(
                           value: uploadState.totalCount == 0
                               ? 0
-                              : uploadState.uploadedCount / uploadState.totalCount,
+                              : uploadState.uploadedCount /
+                                    uploadState.totalCount,
                         ),
                         const Gap(6),
-                        Text('$doneCount of ${uploadState.totalCount} uploaded'),
+                        Text(
+                          '$doneCount of ${uploadState.totalCount} uploaded',
+                        ),
                       ],
                     ),
                   if (uploadState.error != null) ...[
                     const Gap(10),
                     Text(
                       uploadState.error!,
-                      style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
                     ),
                   ],
                   const Gap(16),
@@ -207,24 +224,31 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: uploadState.items.length,
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 10,
-                        mainAxisSpacing: 10,
-                      ),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 10,
+                            mainAxisSpacing: 10,
+                          ),
                       itemBuilder: (context, index) {
                         final item = uploadState.items[index];
                         return _UploadPreviewTile(
                           item: item,
                           onRemove: uploadState.isUploading
                               ? null
-                              : () => ref.read(uploadProvider.notifier).removeAt(index),
-                          onRetry: item.status == UploadItemStatus.error && !uploadState.isUploading
+                              : () => ref
+                                    .read(uploadProvider.notifier)
+                                    .removeAt(index),
+                          onRetry:
+                              item.status == UploadItemStatus.error &&
+                                  !uploadState.isUploading
                               ? () {
                                   final user = ref.read(sessionProvider);
                                   final albumId = _selectedAlbumId;
                                   if (user != null && albumId != null) {
-                                    ref.read(uploadProvider.notifier).retryItem(
+                                    ref
+                                        .read(uploadProvider.notifier)
+                                        .retryItem(
                                           index: index,
                                           albumId: albumId,
                                           user: user,
@@ -238,7 +262,8 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                     ),
                   const Gap(20),
                   FilledButton(
-                    onPressed: uploadState.items.isEmpty ||
+                    onPressed:
+                        uploadState.items.isEmpty ||
                             _selectedAlbumId == null ||
                             uploadState.isUploading
                         ? null
@@ -267,11 +292,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
 }
 
 class _UploadPreviewTile extends StatelessWidget {
-  const _UploadPreviewTile({
-    required this.item,
-    this.onRemove,
-    this.onRetry,
-  });
+  const _UploadPreviewTile({required this.item, this.onRemove, this.onRetry});
 
   final UploadItem item;
   final VoidCallback? onRemove;
@@ -325,7 +346,10 @@ class _UploadPreviewTile extends StatelessWidget {
             top: 6,
             right: 6,
             child: DecoratedBox(
-              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+              decoration: const BoxDecoration(
+                color: Colors.black54,
+                shape: BoxShape.circle,
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(4),
                 child: Icon(statusIcon, color: Colors.white, size: 16),

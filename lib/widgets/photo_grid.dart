@@ -37,10 +37,10 @@ class PhotoGrid extends StatelessWidget {
         final columns = width >= 1200
             ? 5
             : width >= 900
-                ? 4
-                : width >= 680
-                    ? 3
-                    : 2;
+            ? 4
+            : width >= 680
+            ? 3
+            : 2;
 
         return MasonryGridView.count(
           padding: padding,
@@ -56,8 +56,9 @@ class PhotoGrid extends StatelessWidget {
                 PhotoCard(
                   photo: photo,
                   onTap: () => onPhotoTap(photo),
-                  onLongPress:
-                      onPhotoLongPress == null ? null : () => onPhotoLongPress!(photo),
+                  onLongPress: onPhotoLongPress == null
+                      ? null
+                      : () => onPhotoLongPress!(photo),
                 ),
                 if (footerBuilder != null) footerBuilder!(photo),
               ],

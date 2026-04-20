@@ -50,7 +50,9 @@ class ProfileScreen extends ConsumerWidget {
       return;
     }
 
-    final updated = await ref.read(profileControllerProvider).updateName(user, name);
+    final updated = await ref
+        .read(profileControllerProvider)
+        .updateName(user, name);
     await ref.read(sessionProvider.notifier).updateUser(updated);
     ref.invalidate(profileProvider);
   }
@@ -93,7 +95,9 @@ class ProfileScreen extends ConsumerWidget {
       return;
     }
 
-    final updated = await ref.read(profileControllerProvider).addEmail(user, email);
+    final updated = await ref
+        .read(profileControllerProvider)
+        .addEmail(user, email);
     await ref.read(sessionProvider.notifier).updateUser(updated);
     ref.invalidate(profileProvider);
   }
@@ -131,11 +135,21 @@ class ProfileScreen extends ConsumerWidget {
           Center(
             child: Column(
               children: [
-                AvatarWidget(name: user.name, colorHex: user.avatarColor, size: 84),
+                AvatarWidget(
+                  name: user.name,
+                  colorHex: user.avatarColor,
+                  size: 84,
+                ),
                 const Gap(12),
-                Text(user.name, style: Theme.of(context).textTheme.headlineSmall),
+                Text(
+                  user.name,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
                 const Gap(6),
-                Text(user.email ?? 'No email added', style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  user.email ?? 'No email added',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
               ],
             ),
           ),
@@ -216,7 +230,9 @@ class _StatCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
         ),
         child: Column(
           children: [

@@ -48,10 +48,9 @@ class _CreateAlbumScreenState extends ConsumerState<CreateAlbumScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final album = await ref.read(albumsControllerProvider).createAlbum(
-            name: _nameController.text,
-            user: user,
-          );
+      final album = await ref
+          .read(albumsControllerProvider)
+          .createAlbum(name: _nameController.text, user: user);
 
       ref.invalidate(albumsProvider);
       if (!mounted) {
@@ -63,7 +62,9 @@ class _CreateAlbumScreenState extends ConsumerState<CreateAlbumScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not create album. Please try again.')),
+        const SnackBar(
+          content: Text('Could not create album. Please try again.'),
+        ),
       );
     } finally {
       if (mounted) {
@@ -86,13 +87,14 @@ class _CreateAlbumScreenState extends ConsumerState<CreateAlbumScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Album name', style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    'Album name',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   const Gap(12),
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      hintText: 'Summer 2026',
-                    ),
+                    decoration: const InputDecoration(hintText: 'Summer 2026'),
                     validator: Validators.validateName,
                   ),
                   const Gap(20),

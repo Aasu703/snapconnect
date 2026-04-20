@@ -45,7 +45,9 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
   @override
   void initState() {
     super.initState();
-    _confettiController = ConfettiController(duration: const Duration(seconds: 2));
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 2),
+    );
 
     final initialCode = widget.joinCode?.toUpperCase();
     if (initialCode != null && initialCode.isNotEmpty) {
@@ -65,7 +67,9 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
   Future<void> _resolveCode() async {
     final validation = Validators.validateJoinCode(_codeController.text);
     if (validation != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(validation)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(validation)));
       return;
     }
 
@@ -120,10 +124,9 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
     setState(() => _isJoining = true);
 
     try {
-      final detail = await ref.read(partyControllerProvider).joinParty(
-            joinCode: _party.joinCode,
-            user: user,
-          );
+      final detail = await ref
+          .read(partyControllerProvider)
+          .joinParty(joinCode: _party.joinCode, user: user);
 
       if (detail == null) {
         Fluttertoast.showToast(msg: 'Could not join party.');
@@ -230,7 +233,8 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
               else if (_party == null)
                 const EmptyState(
                   title: 'No party selected',
-                  subtitle: 'Scan a QR or enter a 6-character code to preview the party.',
+                  subtitle:
+                      'Scan a QR or enter a 6-character code to preview the party.',
                   icon: Icons.group_outlined,
                 )
               else
@@ -240,12 +244,16 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(_party.name, style: Theme.of(context).textTheme.titleLarge),
+                        Text(
+                          _party.name,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
                         const Gap(6),
                         Text('Host: ${_party.hostName}'),
                         const Gap(4),
                         Text('Code: ${_party.joinCode}'),
-                        if (_party.description != null && _party.description!.isNotEmpty) ...[
+                        if (_party.description != null &&
+                            _party.description!.isNotEmpty) ...[
                           const Gap(8),
                           Text(_party.description!),
                         ],
@@ -258,7 +266,9 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
                                 ? const SizedBox(
                                     width: 18,
                                     height: 18,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   )
                                 : const Text('Join Party'),
                           ),

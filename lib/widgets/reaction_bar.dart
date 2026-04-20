@@ -24,7 +24,8 @@ class ReactionBar extends ConsumerWidget {
         children: _emojis.map((emoji) {
           final count = reactionState.counts[emoji] ?? 0;
           final isSelected = reactionState.currentEmoji == emoji;
-          final tooltip = reactionState.tooltipByEmoji[emoji] ?? 'No reactions yet';
+          final tooltip =
+              reactionState.tooltipByEmoji[emoji] ?? 'No reactions yet';
 
           return Tooltip(
             message: tooltip,
@@ -37,7 +38,8 @@ class ReactionBar extends ConsumerWidget {
                   await IdentityBottomSheet.show(
                     context,
                     title: 'Add your identity',
-                    subtitle: 'React as yourself so friends can see who responded.',
+                    subtitle:
+                        'React as yourself so friends can see who responded.',
                   );
                 }
 
@@ -45,35 +47,43 @@ class ReactionBar extends ConsumerWidget {
                   return;
                 }
 
-                await ref.read(reactionsProvider(photoId).notifier).toggle(emoji);
+                await ref
+                    .read(reactionsProvider(photoId).notifier)
+                    .toggle(emoji);
               },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? Theme.of(context).colorScheme.primaryContainer
-                      : Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(emoji, style: const TextStyle(fontSize: 16)),
-                    if (count > 0) ...[
-                      const SizedBox(width: 6),
-                      Text(
-                        '$count',
-                        style: Theme.of(context).textTheme.labelMedium,
-                      ),
-                    ],
-                  ],
-                ),
-              )
-                  .animate(target: isSelected ? 1 : 0)
-                  .scaleXY(begin: 1, end: 1.3, duration: 100.ms)
-                  .then()
-                  .scaleXY(begin: 1.3, end: 1.0, duration: 100.ms),
+              child:
+                  AnimatedContainer(
+                        duration: const Duration(milliseconds: 180),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primaryContainer
+                              : Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(emoji, style: const TextStyle(fontSize: 16)),
+                            if (count > 0) ...[
+                              const SizedBox(width: 6),
+                              Text(
+                                '$count',
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                            ],
+                          ],
+                        ),
+                      )
+                      .animate(target: isSelected ? 1 : 0)
+                      .scaleXY(begin: 1, end: 1.3, duration: 100.ms)
+                      .then()
+                      .scaleXY(begin: 1.3, end: 1.0, duration: 100.ms),
             ),
           );
         }).toList(),

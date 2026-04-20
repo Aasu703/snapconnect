@@ -68,7 +68,9 @@ class _CreatePartyScreenState extends ConsumerState<CreatePartyScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final party = await ref.read(partyControllerProvider).createParty(
+      final party = await ref
+          .read(partyControllerProvider)
+          .createParty(
             name: _nameController.text,
             description: _descriptionController.text,
             host: user,
@@ -85,7 +87,9 @@ class _CreatePartyScreenState extends ConsumerState<CreatePartyScreen> {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not create party. Please try again.')),
+        const SnackBar(
+          content: Text('Could not create party. Please try again.'),
+        ),
       );
     } finally {
       if (mounted) {

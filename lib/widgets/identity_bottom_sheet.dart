@@ -33,7 +33,8 @@ class IdentityBottomSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<IdentityBottomSheet> createState() => _IdentityBottomSheetState();
+  ConsumerState<IdentityBottomSheet> createState() =>
+      _IdentityBottomSheetState();
 }
 
 class _IdentityBottomSheetState extends ConsumerState<IdentityBottomSheet> {
@@ -86,7 +87,9 @@ class _IdentityBottomSheetState extends ConsumerState<IdentityBottomSheet> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Could not save identity. Please try again.')),
+        const SnackBar(
+          content: Text('Could not save identity. Please try again.'),
+        ),
       );
     } finally {
       if (mounted) {
@@ -115,9 +118,15 @@ class _IdentityBottomSheetState extends ConsumerState<IdentityBottomSheet> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.title, style: Theme.of(context).textTheme.titleLarge),
+                  Text(
+                    widget.title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
                   const Gap(6),
-                  Text(widget.subtitle, style: Theme.of(context).textTheme.bodyMedium),
+                  Text(
+                    widget.subtitle,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
                   const Gap(16),
                   TextFormField(
                     controller: _nameController,

@@ -19,35 +19,38 @@ class PhotoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Hero(
-      tag: 'photo-${photo.id}',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          onLongPress: onLongPress,
-          borderRadius: BorderRadius.circular(14),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(14),
-            child: AspectRatio(
-              aspectRatio: 0.82,
-              child: CachedNetworkImage(
-                imageUrl: photo.url,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.black12,
-                  alignment: Alignment.center,
-                  child: const CircularProgressIndicator(strokeWidth: 2),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Colors.black12,
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.broken_image_outlined),
+          tag: 'photo-${photo.id}',
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              onLongPress: onLongPress,
+              borderRadius: BorderRadius.circular(14),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: AspectRatio(
+                  aspectRatio: 0.82,
+                  child: CachedNetworkImage(
+                    imageUrl: photo.url,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.black12,
+                      alignment: Alignment.center,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.black12,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image_outlined),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
-    ).animate().fadeIn(duration: 200.ms).scaleXY(begin: 0.95, end: 1.0, duration: 200.ms);
+        )
+        .animate()
+        .fadeIn(duration: 200.ms)
+        .scaleXY(begin: 0.95, end: 1.0, duration: 200.ms);
   }
 }
