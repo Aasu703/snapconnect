@@ -17,6 +17,7 @@ import 'package:snapconnect/features/photos/photo_viewer_screen.dart';
 import 'package:snapconnect/features/photos/upload_screen.dart';
 import 'package:snapconnect/features/profile/profile_screen.dart';
 import 'package:snapconnect/widgets/app_navbar.dart';
+import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
 /// Root app widget containing router and global themes.
 class SnapConnectApp extends ConsumerWidget {
@@ -129,22 +130,77 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   );
 });
 
-class _ShellScaffold extends StatelessWidget {
+class _ShellScaffold extends ConsumerWidget {
   const _ShellScaffold({required this.location, required this.child});
 
   final String location;
   final Widget child;
 
+  int _currentIndex(String route) {
+    if (route.startsWith('/party')) {
+      return 1;
+    }
+    if (route.startsWith('/upload')) {
+      return 2;
+    }
+    if (route.startsWith('/profile')) {
+      return 3;
+    }
+    return 0;
+  }
+
+  String _routeForIndex(int index) {
+    switch (index) {
+      case 0:
+        return '/';
+      case 1:
+        return '/party';
+      case 3:
+        return '/profile';
+      default:
+        return '/';
+    }
+  }
+
+  Future<void> _openUpload(BuildContext context, WidgetRef ref) async {
+    if (location.startsWith('/upload')) {
+      return;
+    }
+
+    if (ref.read(sessionProvider) == null) {
+      await IdentityBottomSheet.show(
+        context,
+        title: 'Before uploading',
+        subtitle: 'Set your identity before uploading photos.',
+      );
+    }
+
+    if (!context.mounted || ref.read(sessionProvider) == null) {
+      return;
+    }
+
+    context.push('/upload');
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final index = _currentIndex(location);
+
     return Scaffold(
       body: child,
       bottomNavigationBar: AppNavbar(
-        location: location,
-        onNavigate: (route) {
-          if (route == location) {
+        currentIndex: index,
+        onTap: (selectedIndex) {
+          if (selectedIndex == 2) {
+            _openUpload(context, ref);
             return;
           }
+
+          final route = _routeForIndex(selectedIndex);
+          if (location == route) {
+            return;
+          }
+
           context.go(route);
         },
       ),

@@ -378,9 +378,61 @@ final profileControllerProvider = Provider<ProfileController>(
 );
 
 /// List provider for all albums.
-final albumsProvider = FutureProvider<List<AlbumModel>>(
-  (ref) => ref.watch(albumsControllerProvider).fetchAlbums(),
-);
+final albumsProvider = FutureProvider<List<AlbumModel>>((ref) async {
+  debugPrint('albumsProvider: starting fetch');
+  print('Fetching albums from Supabase...');
+
+  try {
+    final client = SupabaseService.maybeClient;
+    if (client == null) {
+      debugPrint(
+        'albumsProvider: Supabase not initialized, returning empty list',
+      );
+      print('Albums result: 0 albums, error: Supabase not initialized');
+      return const <AlbumModel>[];
+    }
+
+    debugPrint('albumsProvider: calling Supabase');
+    final Object? response = await client
+        .from('albums')
+        .select('*')
+        .order('created_at', ascending: false);
+
+    debugPrint('albumsProvider: raw response type: ${response.runtimeType}');
+    debugPrint('albumsProvider: response: $response');
+
+    if (response == null) {
+      debugPrint('albumsProvider: response is null, returning empty list');
+      print('Albums result: 0 albums, error: null response');
+      return const <AlbumModel>[];
+    }
+
+    final data = response as List<dynamic>;
+    debugPrint('albumsProvider: parsing ${data.length} albums');
+
+    final albums = data
+        .map((json) {
+          try {
+            return AlbumModel.fromJson(json as Map<String, dynamic>);
+          } catch (e) {
+            debugPrint('albumsProvider: failed to parse album: $e');
+            debugPrint('albumsProvider: problematic json: $json');
+            return null;
+          }
+        })
+        .whereType<AlbumModel>()
+        .toList();
+
+    debugPrint('albumsProvider: successfully parsed ${albums.length} albums');
+    print('Albums result: ${albums.length} albums, error: null');
+    return albums;
+  } catch (e, stack) {
+    debugPrint('albumsProvider ERROR: $e');
+    debugPrint('albumsProvider STACK: $stack');
+    print('Albums result: 0 albums, error: $e');
+    rethrow;
+  }
+});
 
 /// Details provider for one album photo list.
 final albumDetailProvider = FutureProvider.family<List<PhotoModel>, String>(
@@ -394,16 +446,27 @@ final uploadProvider = StateNotifierProvider<UploadNotifier, UploadState>(
 );
 
 /// List provider for all active parties.
-final partiesProvider = FutureProvider<List<PartyModel>>(
-  (ref) => ref.watch(partyControllerProvider).fetchAllParties(),
-);
+final partiesProvider = FutureProvider<List<PartyModel>>((ref) async {
+  debugPrint('partiesProvider: starting fetch');
+  try {
+    final parties = await ref.watch(partyControllerProvider).fetchAllParties();
+    debugPrint('partiesProvider: loaded ${parties.length} parties');
+    return parties;
+  } catch (e, stack) {
+    debugPrint('partiesProvider ERROR: $e');
+    debugPrint('partiesProvider STACK: $stack');
+    rethrow;
+  }
+});
 
 /// List provider for parties joined by current user.
 final myPartiesProvider = FutureProvider<List<PartyModel>>((ref) {
   final user = ref.watch(sessionProvider);
   if (user == null) {
+    debugPrint('myPartiesProvider: no session user, returning empty list');
     return Future.value(const <PartyModel>[]);
   }
+  debugPrint('myPartiesProvider: fetching parties for user ${user.id}');
   return ref.watch(partyControllerProvider).fetchMyParties(user.id);
 });
 

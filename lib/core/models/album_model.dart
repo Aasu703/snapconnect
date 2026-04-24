@@ -21,8 +21,8 @@ class AlbumModel {
   /// Creates an album model from Supabase response data.
   factory AlbumModel.fromJson(Map<String, dynamic> json) {
     return AlbumModel(
-      id: (json['id'] ?? '').toString(),
-      name: (json['name'] ?? 'Untitled Album').toString(),
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? 'Untitled',
       coverUrl: json['cover_url']?.toString(),
       createdBy: json['created_by']?.toString(),
       createdByName: json['created_by_name']?.toString(),

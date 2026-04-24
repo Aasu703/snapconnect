@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapconnect/core/models/party_model.dart';
 import 'package:snapconnect/core/providers/app_providers.dart';
-import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
-import 'package:snapconnect/widgets/loading_skeleton.dart';
 
-/// Screen showing active parties with tabs for all and joined parties.
-class PartiesScreen extends ConsumerWidget {
+/// Screen showing active parties with explicit async states.
+class PartiesScreen extends ConsumerStatefulWidget {
   const PartiesScreen({super.key});
 
-  /// Enforces identity before creating a new party.
-  Future<void> _createParty(BuildContext context, WidgetRef ref) async {
+  @override
+  ConsumerState<PartiesScreen> createState() => _PartiesScreenState();
+}
+
+class _PartiesScreenState extends ConsumerState<PartiesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('PartiesScreen mounted');
+  }
+
+  Future<void> _createParty() async {
     if (ref.read(sessionProvider) == null) {
       await IdentityBottomSheet.show(
         context,
@@ -20,23 +29,51 @@ class PartiesScreen extends ConsumerWidget {
       );
     }
 
-    if (ref.read(sessionProvider) == null || !context.mounted) {
+    if (!mounted || ref.read(sessionProvider) == null) {
       return;
     }
 
     context.push('/party/create');
   }
 
+  Future<void> _refreshAllParties() async {
+    ref.invalidate(partiesProvider);
+    try {
+      await ref.read(partiesProvider.future);
+    } catch (e) {
+      debugPrint('PartiesScreen refresh all error: $e');
+    }
+  }
+
+  Future<void> _refreshMyParties() async {
+    ref.invalidate(myPartiesProvider);
+    try {
+      await ref.read(myPartiesProvider.future);
+    } catch (e) {
+      debugPrint('PartiesScreen refresh mine error: $e');
+    }
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    debugPrint('PartiesScreen build called');
     final allPartiesAsync = ref.watch(partiesProvider);
     final myPartiesAsync = ref.watch(myPartiesProvider);
 
     return DefaultTabController(
       length: 2,
       child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
         appBar: AppBar(
-          title: const Text('Parties'),
+          title: const Text(
+            'Parties',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1A1A2E),
+            ),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
           bottom: const TabBar(
             tabs: [
               Tab(text: 'All Parties'),
@@ -48,20 +85,24 @@ class PartiesScreen extends ConsumerWidget {
           children: [
             _PartyListView(
               asyncValue: allPartiesAsync,
-              emptyTitle: 'No active parties',
-              emptySubtitle: 'Create one to invite everyone and upload live.',
-              onRetry: () => ref.invalidate(partiesProvider),
+              listName: 'All parties',
+              emptyTitle: 'No parties yet',
+              emptySubtitle: 'No parties yet. Create one! 🎉',
+              onRefresh: _refreshAllParties,
             ),
             _PartyListView(
               asyncValue: myPartiesAsync,
+              listName: 'My parties',
               emptyTitle: 'You have not joined any parties',
               emptySubtitle: 'Join a party via code or QR to see it here.',
-              onRetry: () => ref.invalidate(myPartiesProvider),
+              onRefresh: _refreshMyParties,
             ),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _createParty(context, ref),
+          onPressed: _createParty,
+          backgroundColor: const Color(0xFF4D96FF),
+          foregroundColor: Colors.white,
           icon: const Icon(Icons.celebration_outlined),
           label: const Text('Create Party'),
         ),
@@ -73,39 +114,92 @@ class PartiesScreen extends ConsumerWidget {
 class _PartyListView extends StatelessWidget {
   const _PartyListView({
     required this.asyncValue,
+    required this.listName,
     required this.emptyTitle,
     required this.emptySubtitle,
-    required this.onRetry,
+    required this.onRefresh,
   });
 
-  final AsyncValue<dynamic> asyncValue;
+  final AsyncValue<List<PartyModel>> asyncValue;
+  final String listName;
   final String emptyTitle;
   final String emptySubtitle;
-  final VoidCallback onRetry;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () async => onRetry(),
-      child: asyncValue.when(
-        loading: () => const LoadingSkeleton(columns: 1, itemCount: 6),
-        error: (error, _) => EmptyState(
-          title: 'Could not load parties',
-          subtitle: error.toString(),
-          icon: Icons.error_outline,
-          actionLabel: 'Retry',
-          onAction: onRetry,
-        ),
-        data: (parties) {
-          if (parties.isEmpty) {
-            return EmptyState(
-              title: emptyTitle,
-              subtitle: emptySubtitle,
-              icon: Icons.celebration_outlined,
-            );
-          }
+    return asyncValue.when(
+      loading: () {
+        debugPrint('$listName: loading state');
+        return const Center(child: CircularProgressIndicator());
+      },
+      error: (error, stack) {
+        debugPrint('$listName error: $error');
+        debugPrint('$listName stack: $stack');
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Failed to load parties',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: onRefresh,
+                  child: const Text('Try Again'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      data: (parties) {
+        debugPrint('$listName loaded: ${parties.length} parties');
+        if (parties.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('🎉', style: TextStyle(fontSize: 64)),
+                  const SizedBox(height: 16),
+                  Text(
+                    emptyTitle,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1A1A2E),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    emptySubtitle,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
-          return ListView.separated(
+        return RefreshIndicator(
+          onRefresh: onRefresh,
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.all(16),
             itemCount: parties.length,
             separatorBuilder: (context, index) => const SizedBox(height: 12),
@@ -118,11 +212,9 @@ class _PartyListView extends StatelessWidget {
                 child: Ink(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerLow,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outlineVariant,
-                    ),
+                    border: Border.all(color: const Color(0xFFE3E5E8)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -143,14 +235,15 @@ class _PartyListView extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.primaryContainer,
+                              color: const Color(0xFFE8F1FF),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
                               party.joinCode,
-                              style: Theme.of(context).textTheme.labelMedium,
+                              style: const TextStyle(
+                                color: Color(0xFF1A1A2E),
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                         ],
@@ -172,9 +265,9 @@ class _PartyListView extends StatelessWidget {
                 ),
               );
             },
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

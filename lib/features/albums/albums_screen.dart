@@ -1,20 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:snapconnect/widgets/album_card.dart';
-import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
-import 'package:snapconnect/widgets/loading_skeleton.dart';
 
-/// Home screen that displays all albums in a responsive masonry grid.
-class AlbumsScreen extends ConsumerWidget {
+/// Home screen that displays all albums with explicit async states.
+class AlbumsScreen extends ConsumerStatefulWidget {
   const AlbumsScreen({super.key});
 
-  /// Ensures user identity before creating albums.
-  Future<void> _createAlbum(BuildContext context, WidgetRef ref) async {
+  @override
+  ConsumerState<AlbumsScreen> createState() => _AlbumsScreenState();
+}
+
+class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('AlbumsScreen mounted');
+    _testSupabase();
+  }
+
+  Future<void> _testSupabase() async {
+    try {
+      final result = await Supabase.instance.client
+          .from('albums')
+          .select('id, name')
+          .limit(1);
+      debugPrint('TEST QUERY RESULT: $result');
+    } catch (e) {
+      debugPrint('TEST QUERY ERROR: $e');
+    }
+  }
+
+  Future<void> _createAlbum() async {
     if (ref.read(sessionProvider) == null) {
       await IdentityBottomSheet.show(
         context,
@@ -23,84 +43,165 @@ class AlbumsScreen extends ConsumerWidget {
       );
     }
 
-    if (ref.read(sessionProvider) == null || !context.mounted) {
+    if (!mounted || ref.read(sessionProvider) == null) {
       return;
     }
 
     context.push('/album/create');
   }
 
+  Future<void> _refreshAlbums() async {
+    ref.invalidate(albumsProvider);
+    try {
+      await ref.read(albumsProvider.future);
+    } catch (e) {
+      debugPrint('Albums refresh error: $e');
+    }
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
+    debugPrint('AlbumsScreen build called');
     final albumsAsync = ref.watch(albumsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Albums')),
-      body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(albumsProvider),
-        child: albumsAsync.when(
-          loading: () {
-            final width = MediaQuery.sizeOf(context).width;
-            final columns = width >= 1200
-                ? 4
-                : width >= 840
-                ? 3
-                : 2;
-            return LoadingSkeleton(columns: columns);
-          },
-          error: (error, _) {
-            return EmptyState(
-              title: 'Could not load albums',
-              subtitle: error.toString(),
-              icon: Icons.error_outline,
-              actionLabel: 'Retry',
-              onAction: () => ref.invalidate(albumsProvider),
-            );
-          },
-          data: (albums) {
-            if (albums.isEmpty) {
-              return EmptyState(
-                title: 'No albums yet',
-                subtitle:
-                    'Create your first album and start collecting memories.',
-                icon: Icons.photo_library_outlined,
-                actionLabel: 'Create your first album',
-                onAction: () => _createAlbum(context, ref),
-              );
-            }
-
-            return LayoutBuilder(
-              builder: (context, constraints) {
-                final columns = constraints.maxWidth >= 1200
-                    ? 4
-                    : constraints.maxWidth >= 840
-                    ? 3
-                    : 2;
-
-                return MasonryGridView.count(
-                  padding: const EdgeInsets.all(16),
-                  crossAxisCount: columns,
-                  mainAxisSpacing: 12,
-                  crossAxisSpacing: 12,
-                  itemCount: albums.length,
-                  itemBuilder: (context, index) {
-                    final album = albums[index];
-                    return AlbumCard(
-                          album: album,
-                          onTap: () => context.push('/album/${album.id}'),
-                        )
-                        .animate(delay: Duration(milliseconds: 30 * index))
-                        .fadeIn(duration: 200.ms)
-                        .scaleXY(begin: 0.95, end: 1);
-                  },
-                );
-              },
-            );
-          },
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        title: const Text(
+          'My Albums',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF1A1A2E),
+          ),
         ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add, color: Color(0xFF4D96FF)),
+            onPressed: _createAlbum,
+          ),
+        ],
+      ),
+      body: albumsAsync.when(
+        loading: () {
+          debugPrint('Albums: loading state');
+          return const Center(child: CircularProgressIndicator());
+        },
+        error: (error, stack) {
+          debugPrint('Albums error: $error');
+          debugPrint('Stack: $stack');
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Failed to load albums',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => ref.invalidate(albumsProvider),
+                    child: const Text('Try Again'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+        data: (albums) {
+          debugPrint('Albums loaded: ${albums.length} albums');
+
+          if (albums.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.photo_camera_outlined,
+                      size: 64,
+                      color: Color(0xFF4D96FF),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'No albums yet',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1A1A2E),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Create your first album to get started',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: _createAlbum,
+                      icon: const Icon(Icons.add),
+                      label: const Text('Create Album'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4D96FF),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 14,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(50),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          final width = MediaQuery.sizeOf(context).width;
+          final columns = width >= 1200
+              ? 4
+              : width >= 840
+              ? 3
+              : 2;
+
+          return RefreshIndicator(
+            onRefresh: _refreshAlbums,
+            child: GridView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: columns,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: albums.length,
+              itemBuilder: (context, index) {
+                final album = albums[index];
+                return AlbumCard(album: album);
+              },
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _createAlbum(context, ref),
+        onPressed: _createAlbum,
+        backgroundColor: const Color(0xFF4D96FF),
+        foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
         label: const Text('Create Album'),
       ),

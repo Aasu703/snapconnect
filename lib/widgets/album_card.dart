@@ -1,155 +1,144 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/models/album_model.dart';
-import 'package:snapconnect/widgets/avatar_widget.dart';
 
 /// Card widget used in album grids.
 class AlbumCard extends StatelessWidget {
-  const AlbumCard({super.key, required this.album, required this.onTap});
+  const AlbumCard({super.key, required this.album, this.onTap});
 
   final AlbumModel album;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+
+  void _handleTap(BuildContext context) {
+    if (onTap != null) {
+      onTap!();
+      return;
+    }
+
+    if (album.id.isNotEmpty) {
+      context.push('/album/${album.id}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final creatorName = album.createdByName ?? 'Anonymous';
+    final creatorName = album.createdByName?.trim();
 
-    return Hero(
-          tag: 'album-${album.id}',
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(16),
-              child: Ink(
+    return GestureDetector(
+      onTap: () => _handleTap(context),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _buildBackground(),
+            Positioned.fill(
+              child: DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: AspectRatio(
-                    aspectRatio: 0.82,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        _buildBackground(),
-                        Container(
-                          decoration: const BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black54,
-                                Colors.black87,
-                              ],
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: 10,
-                          right: 10,
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: Colors.black45,
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              child: Text(
-                                '${album.photoCount} photos',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          left: 12,
-                          right: 12,
-                          bottom: 12,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                album.name,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  AvatarWidget(
-                                    name: creatorName,
-                                    size: 24,
-                                    fontSize: 10,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      creatorName,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.7),
+                    ],
+                    stops: const [0.5, 1.0],
                   ),
                 ),
               ),
             ),
-          ),
-        )
-        .animate()
-        .fadeIn(duration: 200.ms)
-        .scaleXY(begin: 0.95, end: 1.0, duration: 200.ms);
+            Positioned(
+              bottom: 8,
+              left: 10,
+              right: 10,
+              child: Text(
+                album.name.isEmpty ? 'Untitled' : album.name,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (creatorName != null && creatorName.isNotEmpty)
+              Positioned(
+                top: 8,
+                left: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    creatorName,
+                    style: const TextStyle(color: Colors.white, fontSize: 10),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildBackground() {
-    if (album.coverUrl == null || album.coverUrl!.isEmpty) {
-      return Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF4D96FF), Color(0xFF6BCB77)],
-          ),
-        ),
-      );
+    final coverUrl = album.coverUrl?.trim();
+    if (coverUrl == null || coverUrl.isEmpty) {
+      return _placeholder();
     }
 
     return CachedNetworkImage(
-      imageUrl: album.coverUrl!,
+      imageUrl: coverUrl,
       fit: BoxFit.cover,
-      errorWidget: (context, url, error) {
-        return Container(
-          color: Colors.black12,
-          alignment: Alignment.center,
-          child: const Icon(Icons.broken_image_outlined, color: Colors.white70),
-        );
-      },
+      placeholder: (context, url) => Container(
+        color: const Color(0xFFE9ECEF),
+        child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      ),
+      errorWidget: (context, url, error) => _placeholder(),
+    );
+  }
+
+  Widget _placeholder() {
+    final colors = [
+      const Color(0xFF4D96FF),
+      const Color(0xFF6BCB77),
+      const Color(0xFFFF6B6B),
+      const Color(0xFFFFC93C),
+      const Color(0xFFC77DFF),
+    ];
+    final name = album.name.trim();
+    final color = colors[name.length % colors.length];
+
+    return Container(
+      color: color,
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 }
