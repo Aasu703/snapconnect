@@ -66,10 +66,8 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
       onVerticalDragUpdate: (details) {
         if (details.delta.dy > 0) {
           setState(() {
-            _verticalDragOffset = (_verticalDragOffset + details.delta.dy).clamp(
-              0,
-              420,
-            );
+            _verticalDragOffset = (_verticalDragOffset + details.delta.dy)
+                .clamp(0, 420);
           });
         }
       },
@@ -229,8 +227,8 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
                                   ?.copyWith(color: Colors.white),
                             ),
                             const SizedBox(height: 4),
-                              Text(
-                                'Uploaded by ${photo.uploadedByName} - ${DateFormatter.relative(photo.createdAt)}',
+                            Text(
+                              'Uploaded by ${photo.uploadedByName} - ${DateFormatter.relative(photo.createdAt)}',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: Colors.white70),
                             ),
