@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 
 /// Shared typography definitions used in light and dark themes.
@@ -6,38 +7,52 @@ final class AppTextStyles {
   AppTextStyles._();
 
   static TextTheme lightTextTheme() {
-    return const TextTheme(
-      displayLarge: TextStyle(
-        fontSize: 40,
-        fontWeight: FontWeight.w700,
+    return GoogleFonts.interTextTheme().copyWith(
+      // Laws of UX: Aesthetic-Usability Effect with a consistent premium type scale.
+      displayLarge: const TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -1.0,
         color: AppColors.textPrimary,
       ),
-      headlineMedium: TextStyle(
-        fontSize: 24,
+      displayMedium: const TextStyle(
+        fontSize: 26,
         fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
         color: AppColors.textPrimary,
       ),
-      titleLarge: TextStyle(
+      headlineMedium: const TextStyle(
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        color: AppColors.textPrimary,
+      ),
+      titleLarge: const TextStyle(
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
       ),
-      titleMedium: TextStyle(
+      titleMedium: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
       ),
-      bodyLarge: TextStyle(
+      bodyLarge: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: AppColors.textPrimary,
       ),
-      bodyMedium: TextStyle(
+      bodyMedium: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: AppColors.textSecondary,
       ),
-      labelLarge: TextStyle(
+      bodySmall: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textSecondary,
+      ),
+      labelLarge: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppColors.surface,
@@ -46,38 +61,51 @@ final class AppTextStyles {
   }
 
   static TextTheme darkTextTheme() {
-    return const TextTheme(
-      displayLarge: TextStyle(
-        fontSize: 40,
-        fontWeight: FontWeight.w700,
+    return GoogleFonts.interTextTheme().copyWith(
+      displayLarge: const TextStyle(
+        fontSize: 32,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -1.0,
         color: AppColors.darkTextPrimary,
       ),
-      headlineMedium: TextStyle(
-        fontSize: 24,
+      displayMedium: const TextStyle(
+        fontSize: 26,
         fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
         color: AppColors.darkTextPrimary,
       ),
-      titleLarge: TextStyle(
+      headlineMedium: const TextStyle(
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.5,
+        color: AppColors.darkTextPrimary,
+      ),
+      titleLarge: const TextStyle(
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
         color: AppColors.darkTextPrimary,
       ),
-      titleMedium: TextStyle(
+      titleMedium: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
         color: AppColors.darkTextPrimary,
       ),
-      bodyLarge: TextStyle(
+      bodyLarge: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w400,
         color: AppColors.darkTextPrimary,
       ),
-      bodyMedium: TextStyle(
+      bodyMedium: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: AppColors.darkTextSecondary,
       ),
-      labelLarge: TextStyle(
+      bodySmall: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: AppColors.darkTextSecondary,
+      ),
+      labelLarge: const TextStyle(
         fontSize: 14,
         fontWeight: FontWeight.w600,
         color: AppColors.surface,

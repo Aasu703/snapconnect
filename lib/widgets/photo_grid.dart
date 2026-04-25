@@ -25,8 +25,9 @@ class PhotoGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     if (photos.isEmpty) {
       return const EmptyState(
+        emoji: '🌅',
         title: 'No photos yet',
-        subtitle: 'Upload your first memory to start this album.',
+        subtitle: 'Be the first to upload!',
         icon: Icons.photo_camera_back_outlined,
       );
     }
@@ -34,27 +35,32 @@ class PhotoGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final columns = width >= 1200
-            ? 5
-            : width >= 900
+        final columns = width > 900
             ? 4
-            : width >= 680
+            : width >= 600
             ? 3
             : 2;
 
         return MasonryGridView.count(
           padding: padding,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
+          mainAxisSpacing: 8,
+          crossAxisSpacing: 8,
           crossAxisCount: columns,
           itemCount: photos.length,
           itemBuilder: (context, index) {
             final photo = photos[index];
+            final isTall = index % 4 == 0 || index % 4 == 3;
+            final isNew =
+                DateTime.now().difference(photo.createdAt).inSeconds <= 3;
+
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 PhotoCard(
                   photo: photo,
+                  index: index,
+                  tall: isTall,
+                  highlightNew: isNew,
                   onTap: () => onPhotoTap(photo),
                   onLongPress: onPhotoLongPress == null
                       ? null

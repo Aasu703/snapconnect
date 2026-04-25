@@ -48,6 +48,7 @@ dependencies:
 
   # UI helpers
   shimmer: ^3.0.0
+  google_fonts: ^6.2.1
   fluttertoast: ^8.2.4
   gap: ^3.0.1
 

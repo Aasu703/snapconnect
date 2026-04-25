@@ -51,39 +51,45 @@ class ReactionBar extends ConsumerWidget {
                     .read(reactionsProvider(photoId).notifier)
                     .toggle(emoji);
               },
-              child:
-                  AnimatedContainer(
-                        duration: const Duration(milliseconds: 180),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? Theme.of(context).colorScheme.primaryContainer
-                              : Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(emoji, style: const TextStyle(fontSize: 16)),
-                            if (count > 0) ...[
-                              const SizedBox(width: 6),
-                              Text(
-                                '$count',
-                                style: Theme.of(context).textTheme.labelMedium,
-                              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
+                child:
+                    AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primaryContainer
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(emoji, style: const TextStyle(fontSize: 16)),
+                              if (count > 0) ...[
+                                const SizedBox(width: 6),
+                                Text(
+                                  '$count',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.labelMedium,
+                                ),
+                              ],
                             ],
-                          ],
-                        ),
-                      )
-                      .animate(target: isSelected ? 1 : 0)
-                      .scaleXY(begin: 1, end: 1.3, duration: 100.ms)
-                      .then()
-                      .scaleXY(begin: 1.3, end: 1.0, duration: 100.ms),
+                          ),
+                        )
+                        .animate(target: isSelected ? 1 : 0)
+                        // Laws of UX: micro feedback improves perceived responsiveness.
+                        .scaleXY(begin: 1, end: 1.4, duration: 100.ms)
+                        .then()
+                        .scaleXY(begin: 1.4, end: 1.0, duration: 100.ms),
+              ),
             ),
           );
         }).toList(),

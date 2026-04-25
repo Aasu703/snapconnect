@@ -16,6 +16,7 @@ import 'package:snapconnect/features/party/party_detail_screen.dart';
 import 'package:snapconnect/features/photos/photo_viewer_screen.dart';
 import 'package:snapconnect/features/photos/upload_screen.dart';
 import 'package:snapconnect/features/profile/profile_screen.dart';
+import 'package:snapconnect/features/splash/splash_screen.dart';
 import 'package:snapconnect/widgets/app_navbar.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
@@ -41,11 +42,13 @@ class SnapConnectApp extends ConsumerWidget {
 
 /// Router provider with onboarding redirect and shell navigation.
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final onboardingDone = SessionService.instance.isOnboardingCompleted();
-
   return GoRouter(
-    initialLocation: onboardingDone ? '/' : '/onboarding',
+    initialLocation: '/splash',
     redirect: (context, state) {
+      if (state.matchedLocation == '/splash') {
+        return null;
+      }
+
       final onboardingComplete = SessionService.instance
           .isOnboardingCompleted();
 
@@ -61,67 +64,108 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
+        path: '/splash',
+        pageBuilder: (context, state) =>
+            _buildFadeTransitionPage(state: state, child: const SplashScreen()),
+      ),
+      GoRoute(
         path: '/onboarding',
-        builder: (context, state) => const OnboardingScreen(),
+        pageBuilder: (context, state) => _buildFadeTransitionPage(
+          state: state,
+          child: const OnboardingScreen(),
+        ),
       ),
       ShellRoute(
         builder: (context, state, child) {
           return _ShellScaffold(location: state.matchedLocation, child: child);
         },
         routes: [
-          GoRoute(path: '/', builder: (context, state) => const AlbumsScreen()),
+          GoRoute(
+            path: '/',
+            pageBuilder: (context, state) => _buildFadeTransitionPage(
+              state: state,
+              child: const AlbumsScreen(),
+            ),
+          ),
           GoRoute(
             path: '/album/create',
-            builder: (context, state) => const CreateAlbumScreen(),
+            pageBuilder: (context, state) => _buildFadeTransitionPage(
+              state: state,
+              child: const CreateAlbumScreen(),
+            ),
           ),
           GoRoute(
             path: '/album/:id',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final id = state.pathParameters['id'] ?? '';
-              return AlbumDetailScreen(albumId: id);
+              return _buildFadeTransitionPage(
+                state: state,
+                child: AlbumDetailScreen(albumId: id),
+              );
             },
           ),
           GoRoute(
             path: '/upload',
-            builder: (context, state) {
-              return UploadScreen(
-                initialAlbumId: state.uri.queryParameters['albumId'],
+            pageBuilder: (context, state) {
+              return _buildFadeTransitionPage(
+                state: state,
+                child: UploadScreen(
+                  initialAlbumId: state.uri.queryParameters['albumId'],
+                ),
               );
             },
           ),
           GoRoute(
             path: '/party',
-            builder: (context, state) => const PartiesScreen(),
+            pageBuilder: (context, state) => _buildFadeTransitionPage(
+              state: state,
+              child: const PartiesScreen(),
+            ),
           ),
           GoRoute(
             path: '/party/create',
-            builder: (context, state) => const CreatePartyScreen(),
+            pageBuilder: (context, state) => _buildFadeTransitionPage(
+              state: state,
+              child: const CreatePartyScreen(),
+            ),
           ),
           GoRoute(
             path: '/party/:joinCode',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final joinCode = state.pathParameters['joinCode'] ?? '';
-              return PartyDetailScreen(joinCode: joinCode);
+              return _buildFadeTransitionPage(
+                state: state,
+                child: PartyDetailScreen(joinCode: joinCode),
+              );
             },
           ),
           GoRoute(
             path: '/join/:joinCode',
-            builder: (context, state) {
-              return JoinPartyScreen(
-                joinCode: state.pathParameters['joinCode'],
+            pageBuilder: (context, state) {
+              return _buildFadeTransitionPage(
+                state: state,
+                child: JoinPartyScreen(
+                  joinCode: state.pathParameters['joinCode'],
+                ),
               );
             },
           ),
           GoRoute(
             path: '/profile',
-            builder: (context, state) => const ProfileScreen(),
+            pageBuilder: (context, state) => _buildFadeTransitionPage(
+              state: state,
+              child: const ProfileScreen(),
+            ),
           ),
           GoRoute(
             path: '/photo/:id',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final photoId = state.pathParameters['id'] ?? '';
               final albumId = state.uri.queryParameters['albumId'] ?? '';
-              return PhotoViewerScreen(photoId: photoId, albumId: albumId);
+              return _buildFadeTransitionPage(
+                state: state,
+                child: PhotoViewerScreen(photoId: photoId, albumId: albumId),
+              );
             },
           ),
         ],
@@ -129,6 +173,31 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+CustomTransitionPage<void> _buildFadeTransitionPage({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    transitionDuration: const Duration(milliseconds: 250),
+    reverseTransitionDuration: const Duration(milliseconds: 220),
+    child: child,
+    // Laws of UX: Doherty Threshold keeps route transitions below 300ms.
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final fade = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+      final slide = Tween<Offset>(
+        begin: const Offset(0.02, 0.02),
+        end: Offset.zero,
+      ).animate(fade);
+
+      return FadeTransition(
+        opacity: fade,
+        child: SlideTransition(position: slide, child: child),
+      );
+    },
+  );
+}
 
 class _ShellScaffold extends ConsumerWidget {
   const _ShellScaffold({required this.location, required this.child});
@@ -185,11 +254,17 @@ class _ShellScaffold extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final index = _currentIndex(location);
+    final uploadState = ref.watch(uploadProvider);
+    final progress = uploadState.totalCount == 0
+        ? 0.0
+        : uploadState.uploadedCount / uploadState.totalCount;
 
     return Scaffold(
       body: child,
       bottomNavigationBar: AppNavbar(
         currentIndex: index,
+        uploadInProgress: uploadState.isUploading,
+        uploadProgress: progress,
         onTap: (selectedIndex) {
           if (selectedIndex == 2) {
             _openUpload(context, ref);
@@ -219,6 +294,10 @@ ThemeData _lightTheme() {
     ),
     textTheme: AppTextStyles.lightTextTheme(),
     scaffoldBackgroundColor: AppColors.background,
+    refreshIndicatorTheme: const RefreshIndicatorThemeData(
+      color: AppColors.primary,
+      backgroundColor: AppColors.surface,
+    ),
   );
 
   return base.copyWith(
@@ -228,30 +307,34 @@ ThemeData _lightTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      fillColor: const Color(0xFFF1F3F5),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(50),
+        borderSide: BorderSide.none,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(50),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.border),
+        borderRadius: BorderRadius.circular(50),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+        borderRadius: BorderRadius.circular(50),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
+        minimumSize: const Size.fromHeight(56),
         shape: const StadiumBorder(),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
+        minimumSize: const Size.fromHeight(56),
         shape: const StadiumBorder(),
       ),
     ),
@@ -269,6 +352,10 @@ ThemeData _darkTheme() {
     ),
     textTheme: AppTextStyles.darkTextTheme(),
     scaffoldBackgroundColor: AppColors.darkBackground,
+    refreshIndicatorTheme: const RefreshIndicatorThemeData(
+      color: AppColors.primary,
+      backgroundColor: AppColors.darkSurface,
+    ),
   );
 
   return base.copyWith(
@@ -278,30 +365,30 @@ ThemeData _darkTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.darkSurface,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      fillColor: const Color(0xFF1E293B),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.darkBorder),
+        borderRadius: BorderRadius.circular(50),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.darkBorder),
+        borderRadius: BorderRadius.circular(50),
+        borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.4),
+        borderRadius: BorderRadius.circular(50),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
+        minimumSize: const Size.fromHeight(56),
         shape: const StadiumBorder(),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(52),
+        minimumSize: const Size.fromHeight(56),
         shape: const StadiumBorder(),
       ),
     ),
