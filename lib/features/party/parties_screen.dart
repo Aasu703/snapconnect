@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/models/party_model.dart';
 import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
+import 'package:snapconnect/widgets/loading_skeleton.dart';
 
 /// Screen showing active parties with explicit async states.
 class PartiesScreen extends ConsumerStatefulWidget {
@@ -89,6 +91,7 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> {
               emptyTitle: 'No parties yet',
               emptySubtitle: 'No parties yet. Create one! 🎉',
               onRefresh: _refreshAllParties,
+              onCreateParty: _createParty,
             ),
             _PartyListView(
               asyncValue: myPartiesAsync,
@@ -96,6 +99,7 @@ class _PartiesScreenState extends ConsumerState<PartiesScreen> {
               emptyTitle: 'You have not joined any parties',
               emptySubtitle: 'Join a party via code or QR to see it here.',
               onRefresh: _refreshMyParties,
+              onCreateParty: _createParty,
             ),
           ],
         ),
@@ -118,6 +122,7 @@ class _PartyListView extends StatelessWidget {
     required this.emptyTitle,
     required this.emptySubtitle,
     required this.onRefresh,
+    required this.onCreateParty,
   });
 
   final AsyncValue<List<PartyModel>> asyncValue;
@@ -125,13 +130,14 @@ class _PartyListView extends StatelessWidget {
   final String emptyTitle;
   final String emptySubtitle;
   final Future<void> Function() onRefresh;
+  final Future<void> Function() onCreateParty;
 
   @override
   Widget build(BuildContext context) {
     return asyncValue.when(
       loading: () {
         debugPrint('$listName: loading state');
-        return const Center(child: CircularProgressIndicator());
+        return const LoadingSkeleton(columns: 2, itemCount: 6);
       },
       error: (error, stack) {
         debugPrint('$listName error: $error');
@@ -167,32 +173,12 @@ class _PartyListView extends StatelessWidget {
       data: (parties) {
         debugPrint('$listName loaded: ${parties.length} parties');
         if (parties.isEmpty) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('🎉', style: TextStyle(fontSize: 64)),
-                  const SizedBox(height: 16),
-                  Text(
-                    emptyTitle,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A2E),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    emptySubtitle,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
+          return EmptyState(
+            emoji: '🎉',
+            title: emptyTitle,
+            subtitle: emptySubtitle,
+            actionLabel: 'Create Party',
+            onAction: () => onCreateParty(),
           );
         }
 

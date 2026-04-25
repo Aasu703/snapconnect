@@ -74,8 +74,8 @@ class AppNavbar extends StatelessWidget {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           curve: Curves.easeOut,
-                          width: 56,
-                          height: 44,
+                          width: 58,
+                          height: 48,
                           transform: Matrix4.translationValues(
                             0,
                             currentIndex == 2 ? -2 : 0,

@@ -294,10 +294,6 @@ ThemeData _lightTheme() {
     ),
     textTheme: AppTextStyles.lightTextTheme(),
     scaffoldBackgroundColor: AppColors.background,
-    refreshIndicatorTheme: const RefreshIndicatorThemeData(
-      color: AppColors.primary,
-      backgroundColor: AppColors.surface,
-    ),
   );
 
   return base.copyWith(
@@ -309,10 +305,6 @@ ThemeData _lightTheme() {
       filled: true,
       fillColor: const Color(0xFFF1F3F5),
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(50),
-        borderSide: BorderSide.none,
-      ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(50),
         borderSide: BorderSide.none,
@@ -352,10 +344,6 @@ ThemeData _darkTheme() {
     ),
     textTheme: AppTextStyles.darkTextTheme(),
     scaffoldBackgroundColor: AppColors.darkBackground,
-    refreshIndicatorTheme: const RefreshIndicatorThemeData(
-      color: AppColors.primary,
-      backgroundColor: AppColors.darkSurface,
-    ),
   );
 
   return base.copyWith(

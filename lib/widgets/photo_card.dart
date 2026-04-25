@@ -36,7 +36,7 @@ class _PhotoCardState extends State<PhotoCard> {
     final cardHeight = widget.tall ? 250.0 : 180.0;
 
     return Hero(
-          tag: 'photo_${widget.photo.id}',
+          tag: 'photo-${widget.photo.id}',
           child: Material(
             color: Colors.transparent,
             child: AnimatedScale(
@@ -83,11 +83,6 @@ class _PhotoCardState extends State<PhotoCard> {
         .fadeIn(
           duration: disableAnimations ? 0.ms : 220.ms,
           delay: disableAnimations ? 0.ms : (widget.index * 35).ms,
-        )
-        .scaleXY(
-          begin: const Offset(0.96, 0.96),
-          end: const Offset(1, 1),
-          duration: disableAnimations ? 0.ms : 200.ms,
         );
   }
 }
