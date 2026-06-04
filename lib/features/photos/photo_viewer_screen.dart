@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_view/photo_view.dart';
@@ -67,10 +66,8 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
       onVerticalDragUpdate: (details) {
         if (details.delta.dy > 0) {
           setState(() {
-            _verticalDragOffset = (_verticalDragOffset + details.delta.dy).clamp(
-              0,
-              420,
-            );
+            _verticalDragOffset = (_verticalDragOffset + details.delta.dy)
+                .clamp(0, 420);
           });
         }
       },
@@ -117,31 +114,30 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
 
             return Stack(
               children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 180),
-                  transform: Matrix4.identity()
-                    ..translate(0.0, _verticalDragOffset)
-                    ..scale(viewerScale),
-                  curve: Curves.easeOut,
-                  child: PageView.builder(
-                    controller: _pageController,
-                    itemCount: photos.length,
-                    onPageChanged: (index) =>
-                        setState(() => _currentIndex = index),
-                    itemBuilder: (context, index) {
-                      final item = photos[index];
-                      return Hero(
-                        tag: 'photo_${item.id}',
-                        child: PhotoView(
-                          imageProvider: NetworkImage(item.url),
-                          backgroundDecoration: const BoxDecoration(
-                            color: Colors.black,
+                Transform.translate(
+                  offset: Offset(0, _verticalDragOffset),
+                  child: Transform.scale(
+                    scale: viewerScale,
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: photos.length,
+                      onPageChanged: (index) =>
+                          setState(() => _currentIndex = index),
+                      itemBuilder: (context, index) {
+                        final item = photos[index];
+                        return Hero(
+                          tag: 'photo-${item.id}',
+                          child: PhotoView(
+                            imageProvider: NetworkImage(item.url),
+                            backgroundDecoration: const BoxDecoration(
+                              color: Colors.black,
+                            ),
+                            minScale: PhotoViewComputedScale.contained,
+                            maxScale: PhotoViewComputedScale.covered * 3,
                           ),
-                          minScale: PhotoViewComputedScale.contained,
-                          maxScale: PhotoViewComputedScale.covered * 3,
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
                 AnimatedPositioned(
@@ -232,15 +228,16 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Uploaded by ${photo.uploadedByName} • ${DateFormatter.relative(photo.createdAt)}',
+                              'Uploaded by ${photo.uploadedByName} - ${DateFormatter.relative(photo.createdAt)}',
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: Colors.white70),
                             ),
+                            const SizedBox(height: 8),
                             ReactionBar(photoId: photo.id),
                           ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ],

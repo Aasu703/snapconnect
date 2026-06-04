@@ -393,7 +393,7 @@ final albumsProvider = FutureProvider<List<AlbumModel>>((ref) async {
     }
 
     debugPrint('albumsProvider: calling Supabase');
-    final Object? response = await client
+    final Object response = await client
         .from('albums')
         .select('*')
         .order('created_at', ascending: false);

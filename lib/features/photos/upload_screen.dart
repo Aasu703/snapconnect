@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:snapconnect/core/providers/app_providers.dart';
 import 'package:snapconnect/features/photos/photos_controller.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
@@ -107,9 +108,15 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
   Widget build(BuildContext context) {
     final albumsAsync = ref.watch(albumsProvider);
     final uploadState = ref.watch(uploadProvider);
+    final columns = MediaQuery.sizeOf(context).width >= 600 ? 3 : 2;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Upload Photos')),
+      backgroundColor: const Color(0xFFF8F9FA),
+      appBar: AppBar(
+        title: const Text('Upload Photos'),
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+      ),
       body: Stack(
         alignment: Alignment.topCenter,
         children: [
@@ -142,6 +149,11 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
               return ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
+                  Text(
+                    'Choose a target album',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const Gap(8),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedAlbumId,
                     items: albums
@@ -159,7 +171,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                       labelText: 'Select Album',
                     ),
                   ),
-                  const Gap(12),
+                  const Gap(14),
                   TextFormField(
                     controller: _titleController,
                     decoration: const InputDecoration(
@@ -167,32 +179,35 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                       hintText: 'Applied to all selected photos',
                     ),
                   ),
-                  const Gap(16),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
+                  const Gap(18),
+                  Row(
                     children: [
-                      FilledButton.icon(
-                        onPressed: uploadState.isUploading
-                            ? null
-                            : () => ref
-                                  .read(uploadProvider.notifier)
-                                  .pickPhotos(),
-                        icon: const Icon(Icons.photo_library_outlined),
-                        label: const Text('Pick Photos'),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: uploadState.isUploading
+                              ? null
+                              : () => ref
+                                    .read(uploadProvider.notifier)
+                                    .pickPhotos(),
+                          icon: const Icon(Icons.photo_library_outlined),
+                          label: const Text('Pick Photos'),
+                        ),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: uploadState.isUploading
-                            ? null
-                            : () => ref
-                                  .read(uploadProvider.notifier)
-                                  .capturePhoto(),
-                        icon: const Icon(Icons.camera_alt_outlined),
-                        label: const Text('Take Photo'),
+                      const Gap(10),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: uploadState.isUploading
+                              ? null
+                              : () => ref
+                                    .read(uploadProvider.notifier)
+                                    .capturePhoto(),
+                          icon: const Icon(Icons.camera_alt_outlined),
+                          label: const Text('Take Photo'),
+                        ),
                       ),
                     ],
                   ),
-                  const Gap(16),
+                  const Gap(18),
                   if (uploadState.totalCount > 0)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,16 +235,13 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                   ],
                   const Gap(16),
                   if (uploadState.items.isNotEmpty)
-                    GridView.builder(
+                    MasonryGridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: uploadState.items.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                          ),
+                      crossAxisCount: columns,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
                       itemBuilder: (context, index) {
                         final item = uploadState.items[index];
                         return _UploadPreviewTile(
@@ -360,12 +372,19 @@ class _UploadPreviewTile extends StatelessWidget {
             Positioned(
               left: 6,
               top: 6,
-              child: InkWell(
-                onTap: onRemove,
-                child: const CircleAvatar(
-                  radius: 11,
-                  backgroundColor: Colors.black54,
-                  child: Icon(Icons.close, color: Colors.white, size: 14),
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Center(
+                  child: InkWell(
+                    onTap: onRemove,
+                    borderRadius: BorderRadius.circular(999),
+                    child: const CircleAvatar(
+                      radius: 11,
+                      backgroundColor: Colors.black54,
+                      child: Icon(Icons.close, color: Colors.white, size: 14),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -374,15 +393,18 @@ class _UploadPreviewTile extends StatelessWidget {
               left: 0,
               right: 0,
               bottom: 0,
-              child: InkWell(
-                onTap: onRetry,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  color: Colors.black54,
-                  alignment: Alignment.center,
-                  child: const Text(
-                    'Retry',
-                    style: TextStyle(color: Colors.white, fontSize: 12),
+              child: SizedBox(
+                height: 48,
+                child: InkWell(
+                  onTap: onRetry,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    color: Colors.black54,
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'Retry',
+                      style: TextStyle(color: Colors.white, fontSize: 12),
+                    ),
                   ),
                 ),
               ),

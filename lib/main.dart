@@ -11,7 +11,7 @@ import 'package:snapconnect/core/services/supabase_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await _safeInitialize();
+  await _safeInitialize(); 
   runApp(const ProviderScope(child: SnapConnectApp()));
 }
 
