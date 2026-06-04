@@ -380,7 +380,7 @@ final profileControllerProvider = Provider<ProfileController>(
 /// List provider for all albums.
 final albumsProvider = FutureProvider<List<AlbumModel>>((ref) async {
   debugPrint('albumsProvider: starting fetch');
-  print('Fetching albums from Supabase...');
+  
 
   try {
     final client = SupabaseService.maybeClient;
@@ -388,7 +388,7 @@ final albumsProvider = FutureProvider<List<AlbumModel>>((ref) async {
       debugPrint(
         'albumsProvider: Supabase not initialized, returning empty list',
       );
-      print('Albums result: 0 albums, error: Supabase not initialized');
+      
       return const <AlbumModel>[];
     }
 
@@ -400,12 +400,6 @@ final albumsProvider = FutureProvider<List<AlbumModel>>((ref) async {
 
     debugPrint('albumsProvider: raw response type: ${response.runtimeType}');
     debugPrint('albumsProvider: response: $response');
-
-    if (response == null) {
-      debugPrint('albumsProvider: response is null, returning empty list');
-      print('Albums result: 0 albums, error: null response');
-      return const <AlbumModel>[];
-    }
 
     final data = response as List<dynamic>;
     debugPrint('albumsProvider: parsing ${data.length} albums');
@@ -424,12 +418,12 @@ final albumsProvider = FutureProvider<List<AlbumModel>>((ref) async {
         .toList();
 
     debugPrint('albumsProvider: successfully parsed ${albums.length} albums');
-    print('Albums result: ${albums.length} albums, error: null');
+
     return albums;
   } catch (e, stack) {
     debugPrint('albumsProvider ERROR: $e');
     debugPrint('albumsProvider STACK: $stack');
-    print('Albums result: 0 albums, error: $e');
+
     rethrow;
   }
 });
