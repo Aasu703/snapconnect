@@ -209,7 +209,7 @@ class _PartyListView extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              party.name,
+                              party.fullName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: Theme.of(context).textTheme.titleMedium,

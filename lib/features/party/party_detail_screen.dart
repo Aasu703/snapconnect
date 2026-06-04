@@ -78,7 +78,7 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  party.name,
+                  party.fullName,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),

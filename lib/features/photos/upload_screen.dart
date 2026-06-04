@@ -160,7 +160,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                         .map(
                           (album) => DropdownMenuItem<String>(
                             value: album.id,
-                            child: Text(album.name),
+                            child: Text(album.fullName),
                           ),
                         )
                         .toList(),
