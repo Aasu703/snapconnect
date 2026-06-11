@@ -56,7 +56,7 @@ class AlbumModel {
   }) {
     return AlbumModel(
       id: id ?? this.id,
-      fullName: fullName ?? this.fullName,
+      fullName: fullName ?? fullName,
       coverUrl: coverUrl ?? this.coverUrl,
       createdBy: createdBy ?? this.createdBy,
       createdByName: createdByName ?? this.createdByName,
