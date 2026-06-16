@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/controllers_provider.dart';
+import 'package:snapconnect/core/providers/party_provider.dart';
+import 'package:snapconnect/core/providers/session_provider.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 

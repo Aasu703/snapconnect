@@ -5,7 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/session_provider.dart';
 import 'package:snapconnect/features/events/data/repositories/event_repository_impl.dart';
 import 'package:snapconnect/features/events/domain/entities/event_entity.dart';
 import 'package:uuid/uuid.dart';
@@ -44,9 +44,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: AppColors.primary,
-              ),
+          colorScheme: Theme.of(
+            context,
+          ).colorScheme.copyWith(primary: AppColors.primary),
         ),
         child: child!,
       ),
@@ -60,9 +60,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       initialTime: _selectedTime ?? TimeOfDay.now(),
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: AppColors.primary,
-              ),
+          colorScheme: Theme.of(
+            context,
+          ).colorScheme.copyWith(primary: AppColors.primary),
         ),
         child: child!,
       ),
@@ -73,8 +73,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   String _generateJoinCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     final rng = DateTime.now().millisecondsSinceEpoch;
-    return List.generate(
-        6, (i) => chars[(rng + i * 7) % chars.length]).join();
+    return List.generate(6, (i) => chars[(rng + i * 7) % chars.length]).join();
   }
 
   Future<void> _submit() async {
@@ -82,9 +81,9 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
 
     final user = ref.read(sessionProvider);
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please sign in first')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please sign in first')));
       return;
     }
 
@@ -150,8 +149,10 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Create Event',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Create Event',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -264,8 +265,11 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
                           : const Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.rocket_launch_rounded,
-                                    color: Colors.white, size: 20),
+                                Icon(
+                                  Icons.rocket_launch_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                                 SizedBox(width: 10),
                                 Text(
                                   'Create Event',
@@ -314,9 +318,14 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
-            color: Colors.white.withValues(alpha: 0.25), fontSize: 14),
-        prefixIcon: Icon(icon,
-            size: 20, color: Colors.white.withValues(alpha: 0.4)),
+          color: Colors.white.withValues(alpha: 0.25),
+          fontSize: 14,
+        ),
+        prefixIcon: Icon(
+          icon,
+          size: 20,
+          color: Colors.white.withValues(alpha: 0.4),
+        ),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.06),
         border: OutlineInputBorder(
@@ -365,8 +374,7 @@ class _DateTimeChip extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,
-                size: 18, color: Colors.white.withValues(alpha: 0.5)),
+            Icon(icon, size: 18, color: Colors.white.withValues(alpha: 0.5)),
             const SizedBox(width: 8),
             Text(
               label,

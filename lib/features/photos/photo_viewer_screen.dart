@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/albums_provider.dart';
 import 'package:snapconnect/core/services/download_service.dart';
 import 'package:snapconnect/core/utils/date_formatter.dart';
 import 'package:snapconnect/widgets/empty_state.dart';

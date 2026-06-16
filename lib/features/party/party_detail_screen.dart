@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/party_provider.dart';
 import 'package:snapconnect/widgets/avatar_widget.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/live_badge.dart';

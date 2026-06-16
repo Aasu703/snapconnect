@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/session_provider.dart';
 import 'package:snapconnect/core/services/cloudinary_service.dart';
 import 'package:snapconnect/core/services/supabase_service.dart';
 import 'dart:io';
@@ -51,7 +51,9 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
     final files = await _picker.pickMultiImage(imageQuality: 85);
     if (files.isNotEmpty) {
       setState(() {
-        _selectedFiles.addAll(files.take(AppConstants.maxUploadPhotos - _selectedFiles.length));
+        _selectedFiles.addAll(
+          files.take(AppConstants.maxUploadPhotos - _selectedFiles.length),
+        );
       });
     }
   }
@@ -137,16 +139,20 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Pick Photos',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Pick Photos',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
         actions: [
           if (_selectedFiles.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Center(
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.primary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
@@ -197,10 +203,10 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
                     padding: const EdgeInsets.all(12),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                    ),
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 6,
+                          mainAxisSpacing: 6,
+                        ),
                     itemCount: _selectedFiles.length,
                     itemBuilder: (context, index) {
                       return Stack(
@@ -224,11 +230,13 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
                                   height: 24,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    color:
-                                        Colors.black.withValues(alpha: 0.6),
+                                    color: Colors.black.withValues(alpha: 0.6),
                                   ),
-                                  child: const Icon(Icons.close_rounded,
-                                      color: Colors.white, size: 14),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    color: Colors.white,
+                                    size: 14,
+                                  ),
                                 ),
                               ),
                             ),
@@ -236,19 +244,21 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10),
-                                color: AppColors.success
-                                    .withValues(alpha: 0.3),
+                                color: AppColors.success.withValues(alpha: 0.3),
                               ),
                               child: const Center(
-                                child: Icon(Icons.check_circle_rounded,
-                                    color: AppColors.success, size: 28),
+                                child: Icon(
+                                  Icons.check_circle_rounded,
+                                  color: AppColors.success,
+                                  size: 28,
+                                ),
                               ),
                             ),
                         ],
                       ).animate().fadeIn(
-                            delay: Duration(milliseconds: 30 * index),
-                            duration: 250.ms,
-                          );
+                        delay: Duration(milliseconds: 30 * index),
+                        duration: 250.ms,
+                      );
                     },
                   ),
           ),
@@ -259,9 +269,7 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF1E293B),
                 border: Border(
-                  top: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.06),
-                  ),
+                  top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
                 ),
               ),
               child: Column(
@@ -271,8 +279,7 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
                       borderRadius: BorderRadius.circular(4),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor:
-                            Colors.white.withValues(alpha: 0.08),
+                        backgroundColor: Colors.white.withValues(alpha: 0.08),
                         color: AppColors.primary,
                         minHeight: 4,
                       ),
@@ -304,13 +311,13 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
                                     ),
                                   )
                                 : Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       const Icon(
-                                          Icons.cloud_upload_rounded,
-                                          color: Colors.white,
-                                          size: 20),
+                                        Icons.cloud_upload_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
                                       const SizedBox(width: 8),
                                       Text(
                                         'Upload ${_selectedFiles.length} Photo${_selectedFiles.length != 1 ? 's' : ''}',
@@ -347,8 +354,11 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
               shape: BoxShape.circle,
               color: AppColors.primary.withValues(alpha: 0.1),
             ),
-            child: Icon(Icons.add_photo_alternate_rounded,
-                size: 36, color: AppColors.primary.withValues(alpha: 0.6)),
+            child: Icon(
+              Icons.add_photo_alternate_rounded,
+              size: 36,
+              color: AppColors.primary.withValues(alpha: 0.6),
+            ),
           ),
           const Gap(20),
           Text(

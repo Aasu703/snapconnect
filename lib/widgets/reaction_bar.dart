@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/providers/reactions_provider.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
 /// Emoji reaction row with counts and optimistic updates.

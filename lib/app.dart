@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/constants/app_text_styles.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/providers/upload_provider.dart';
 import 'package:snapconnect/features/albums/album_detail_screen.dart';
 import 'package:snapconnect/features/albums/albums_screen.dart';
 import 'package:snapconnect/features/albums/create_album_screen.dart';
@@ -76,7 +77,8 @@ class SnapConnectApp extends ConsumerWidget {
 
         final authState = context.read<AuthCubit>().state;
         final bool isAuthenticated = authState is Authenticated;
-        final bool isLoggingIn = state.matchedLocation == '/login' ||
+        final bool isLoggingIn =
+            state.matchedLocation == '/login' ||
             state.matchedLocation == '/register';
 
         if (!isAuthenticated && !isLoggingIn) {
@@ -92,15 +94,15 @@ class SnapConnectApp extends ConsumerWidget {
       routes: [
         GoRoute(
           path: '/splash',
-          pageBuilder: (context, state) =>
-              _buildFadeTransitionPage(state: state, child: const SplashScreen()),
+          pageBuilder: (context, state) => _buildFadeTransitionPage(
+            state: state,
+            child: const SplashScreen(),
+          ),
         ),
         GoRoute(
           path: '/login',
-          pageBuilder: (context, state) => _buildFadeTransitionPage(
-            state: state,
-            child: const LoginPage(),
-          ),
+          pageBuilder: (context, state) =>
+              _buildFadeTransitionPage(state: state, child: const LoginPage()),
         ),
         GoRoute(
           path: '/register',
@@ -167,17 +169,17 @@ class SnapConnectApp extends ConsumerWidget {
             final joinCode = state.uri.queryParameters['joinCode'] ?? '';
             return _buildFadeTransitionPage(
               state: state,
-              child: UploadSuccessScreen(
-                photoCount: count,
-                joinCode: joinCode,
-              ),
+              child: UploadSuccessScreen(photoCount: count, joinCode: joinCode),
             );
           },
         ),
         // ── Authenticated shell routes ───────────────────────────────
         ShellRoute(
           builder: (context, state, child) {
-            return _ShellScaffold(location: state.matchedLocation, child: child);
+            return _ShellScaffold(
+              location: state.matchedLocation,
+              child: child,
+            );
           },
           routes: [
             GoRoute(

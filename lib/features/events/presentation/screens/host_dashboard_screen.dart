@@ -5,7 +5,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/session_provider.dart';
 import 'package:snapconnect/features/events/data/repositories/event_repository_impl.dart';
 import 'package:snapconnect/features/events/domain/entities/event_entity.dart';
 
@@ -79,9 +79,7 @@ class _HostDashboardScreenState extends ConsumerState<HostDashboardScreen> {
                       children: [
                         Text(
                           'My Events',
-                          style: Theme.of(context)
-                              .textTheme
-                              .displayMedium
+                          style: Theme.of(context).textTheme.displayMedium
                               ?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
@@ -99,9 +97,7 @@ class _HostDashboardScreenState extends ConsumerState<HostDashboardScreen> {
                       ],
                     ),
                   ),
-                  _CreateEventFab(
-                    onTap: () => context.push('/events/create'),
-                  ),
+                  _CreateEventFab(onTap: () => context.push('/events/create')),
                 ],
               ),
             ).animate().fadeIn(duration: 400.ms),
@@ -110,38 +106,43 @@ class _HostDashboardScreenState extends ConsumerState<HostDashboardScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary))
+                      child: CircularProgressIndicator(
+                        color: AppColors.primary,
+                      ),
+                    )
                   : _events.isEmpty
-                      ? _EmptyState()
-                      : RefreshIndicator(
-                          onRefresh: _loadEvents,
-                          color: AppColors.primary,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                            itemCount: _events.length,
-                            separatorBuilder: (_, _) => const Gap(14),
-                            itemBuilder: (context, index) {
-                              final event = _events[index];
-                              final stat =
-                                  _stats[event.id] ?? {'photos': 0, 'guests': 0};
-                              return _EventCard(
+                  ? _EmptyState()
+                  : RefreshIndicator(
+                      onRefresh: _loadEvents,
+                      color: AppColors.primary,
+                      child: ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                        itemCount: _events.length,
+                        separatorBuilder: (_, _) => const Gap(14),
+                        itemBuilder: (context, index) {
+                          final event = _events[index];
+                          final stat =
+                              _stats[event.id] ?? {'photos': 0, 'guests': 0};
+                          return _EventCard(
                                 event: event,
                                 photoCount: stat['photos'] ?? 0,
                                 guestCount: stat['guests'] ?? 0,
-                                onViewQR: () =>
-                                    context.push('/events/${event.joinCode}/qr'),
-                                onManageAlbum: () => context
-                                    .push('/events/${event.joinCode}/album'),
+                                onViewQR: () => context.push(
+                                  '/events/${event.joinCode}/qr',
+                                ),
+                                onManageAlbum: () => context.push(
+                                  '/events/${event.joinCode}/album',
+                                ),
                               )
-                                  .animate()
-                                  .fadeIn(
-                                    delay: Duration(milliseconds: 80 * index),
-                                    duration: 400.ms,
-                                  )
-                                  .slideX(begin: 0.05, end: 0, duration: 400.ms);
-                            },
-                          ),
-                        ),
+                              .animate()
+                              .fadeIn(
+                                delay: Duration(milliseconds: 80 * index),
+                                duration: 400.ms,
+                              )
+                              .slideX(begin: 0.05, end: 0, duration: 400.ms);
+                        },
+                      ),
+                    ),
             ),
           ],
         ),
@@ -220,7 +221,10 @@ class _EventCard extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: event.isActive
                       ? AppColors.success.withValues(alpha: 0.15)
@@ -273,11 +277,11 @@ class _EventCard extends StatelessWidget {
           Row(
             children: [
               _StatChip(
-                  icon: Icons.photo_library_rounded,
-                  label: '$photoCount photos'),
+                icon: Icons.photo_library_rounded,
+                label: '$photoCount photos',
+              ),
               const Gap(12),
-              _StatChip(
-                  icon: Icons.group_rounded, label: '$guestCount guests'),
+              _StatChip(icon: Icons.group_rounded, label: '$guestCount guests'),
               if (event.eventDate != null) ...[
                 const Gap(12),
                 _StatChip(

@@ -6,7 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/models/photo_model.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/session_provider.dart';
 import 'package:snapconnect/core/services/supabase_service.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -73,8 +73,10 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E293B),
-        title: const Text('Delete Photo',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Delete Photo',
+          style: TextStyle(color: Colors.white),
+        ),
         content: Text(
           'Remove this photo from the event album?',
           style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
@@ -86,8 +88,10 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child:
-                const Text('Delete', style: TextStyle(color: AppColors.danger)),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppColors.danger),
+            ),
           ),
         ],
       ),
@@ -100,9 +104,9 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
       setState(() => _photos.removeWhere((p) => p.id == photoId));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete photo')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to delete photo')));
       }
     }
   }
@@ -118,95 +122,95 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
           icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: const Text('My Photos',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'My Photos',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary))
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
           : _photos.isEmpty
-              ? _buildEmptyState()
-              : GridView.builder(
-                  padding: const EdgeInsets.all(12),
-                  gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
-                    childAspectRatio: 0.85,
-                  ),
-                  itemCount: _photos.length,
-                  itemBuilder: (context, index) {
-                    final photo = _photos[index];
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: photo.url,
-                            fit: BoxFit.cover,
-                            placeholder: (_, _) => Container(
-                              color: Colors.white.withValues(alpha: 0.05),
-                            ),
-                          ),
-                          // Bottom info overlay
-                          Positioned(
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.black.withValues(alpha: 0.7),
-                                  ],
-                                ),
-                              ),
-                              child: Text(
-                                timeago.format(photo.createdAt),
-                                style: TextStyle(
-                                  color:
-                                      Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                          ),
-                          // Delete button
-                          Positioned(
-                            top: 6,
-                            right: 6,
-                            child: GestureDetector(
-                              onTap: () => _deletePhoto(photo.id),
-                              child: Container(
-                                width: 28,
-                                height: 28,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color:
-                                      Colors.black.withValues(alpha: 0.5),
-                                ),
-                                child: const Icon(
-                                  Icons.delete_outline_rounded,
-                                  color: Colors.white70,
-                                  size: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+          ? _buildEmptyState()
+          : GridView.builder(
+              padding: const EdgeInsets.all(12),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 0.85,
+              ),
+              itemCount: _photos.length,
+              itemBuilder: (context, index) {
+                final photo = _photos[index];
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      CachedNetworkImage(
+                        imageUrl: photo.url,
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => Container(
+                          color: Colors.white.withValues(alpha: 0.05),
+                        ),
                       ),
-                    ).animate().fadeIn(
-                          delay: Duration(milliseconds: 50 * index),
-                          duration: 300.ms,
-                        );
-                  },
-                ),
+                      // Bottom info overlay
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withValues(alpha: 0.7),
+                              ],
+                            ),
+                          ),
+                          child: Text(
+                            timeago.format(photo.createdAt),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Delete button
+                      Positioned(
+                        top: 6,
+                        right: 6,
+                        child: GestureDetector(
+                          onTap: () => _deletePhoto(photo.id),
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(alpha: 0.5),
+                            ),
+                            child: const Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.white70,
+                              size: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(
+                  delay: Duration(milliseconds: 50 * index),
+                  duration: 300.ms,
+                );
+              },
+            ),
     );
   }
 
@@ -215,8 +219,11 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.photo_outlined,
-              size: 48, color: Colors.white.withValues(alpha: 0.3)),
+          Icon(
+            Icons.photo_outlined,
+            size: 48,
+            color: Colors.white.withValues(alpha: 0.3),
+          ),
           const Gap(16),
           Text(
             'No contributions yet',
@@ -236,8 +243,7 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
           ),
           const Gap(24),
           OutlinedButton.icon(
-            onPressed: () =>
-                context.push('/guest/${widget.joinCode}/pick'),
+            onPressed: () => context.push('/guest/${widget.joinCode}/pick'),
             icon: const Icon(Icons.add_a_photo_rounded),
             label: const Text('Upload Photos'),
             style: OutlinedButton.styleFrom(
