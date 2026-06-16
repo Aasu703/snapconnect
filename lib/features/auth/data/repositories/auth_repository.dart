@@ -1,13 +1,19 @@
-import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/api/api.endpoints.dart';
-import '../models/user_model.dart';
+import '../../../../core/models/user_model.dart';
+import '../../domain/repositories/auth_repository.dart';
 
-class AuthRepository {
-  final Dio _dio = Dio();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+/// Concrete implementation of [IAuthRepository] using REST API via Dio.
+class AuthRepositoryImpl implements IAuthRepository {
+  final Dio _dio;
+  final FlutterSecureStorage _storage;
 
+  AuthRepositoryImpl({Dio? dio, FlutterSecureStorage? storage})
+      : _dio = dio ?? Dio(),
+        _storage = storage ?? const FlutterSecureStorage();
+
+  @override
   Future<Map<String, dynamic>> login(String email, String password) async {
     try {
       final response = await _dio.post(
@@ -34,6 +40,7 @@ class AuthRepository {
     }
   }
 
+  @override
   Future<bool> register(Map<String, dynamic> data) async {
     try {
       final response = await _dio.post(
@@ -46,6 +53,7 @@ class AuthRepository {
     }
   }
 
+  @override
   Future<UserModel?> whoAmI() async {
     try {
       final token = await _storage.read(key: 'auth_token');
@@ -65,6 +73,7 @@ class AuthRepository {
     }
   }
 
+  @override
   Future<void> logout() async {
     await _storage.delete(key: 'auth_token');
   }

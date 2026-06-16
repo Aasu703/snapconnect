@@ -5,7 +5,12 @@ import 'package:shimmer/shimmer.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/services/session_service.dart';
 
-/// Animated launch screen shown before onboarding or home.
+/// Premium animated splash screen with SnapConnect branding.
+///
+/// Checks authentication state and routes accordingly:
+/// - Authenticated → Home
+/// - First launch → Onboarding
+/// - Returning unauthenticated → Login
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -13,94 +18,171 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulseController;
+  bool _navigated = false;
+
   @override
   void initState() {
     super.initState();
-    _navigate();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+    _startNavigation();
   }
 
-  Future<void> _navigate() async {
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _startNavigation() async {
     final disableAnimations = WidgetsBinding
-        .instance
-        .platformDispatcher
-        .accessibilityFeatures
-        .disableAnimations;
+        .instance.platformDispatcher.accessibilityFeatures.disableAnimations;
     final wait = disableAnimations
-        ? const Duration(milliseconds: 300)
-        : const Duration(milliseconds: 2200);
+        ? const Duration(milliseconds: 400)
+        : const Duration(milliseconds: 2600);
 
     await Future<void>.delayed(wait);
-    if (!mounted) {
-      return;
-    }
+    if (!mounted || _navigated) return;
 
+    _navigated = true;
+    final onboardingDone = SessionService.instance.isOnboardingCompleted();
     final hasSession = SessionService.instance.getUser() != null;
+
     if (hasSession) {
       context.go('/');
-    } else {
+    } else if (!onboardingDone) {
       context.go('/onboarding');
+    } else {
+      context.go('/login');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final disableAnimations = MediaQuery.of(context).disableAnimations;
-    final logoDuration = disableAnimations ? 0.ms : 600.ms;
-    final titleDelay = disableAnimations ? 0.ms : 400.ms;
-    final titleDuration = disableAnimations ? 0.ms : 400.ms;
-    final taglineDelay = disableAnimations ? 0.ms : 700.ms;
+    final dur = disableAnimations ? 0.ms : 600.ms;
+    final delayTitle = disableAnimations ? 0.ms : 500.ms;
+    final delayTagline = disableAnimations ? 0.ms : 800.ms;
+    final delayLoader = disableAnimations ? 0.ms : 1200.ms;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Laws of UX: Von Restorff Effect with a distinct branded focal point.
-            Shimmer.fromColors(
-                  baseColor: const Color(0xFF4D96FF),
-                  highlightColor: const Color(0xFF8CC0FF),
-                  child: const Icon(
-                    Icons.camera_alt_rounded,
-                    size: 72,
-                    color: AppColors.primary,
-                  ),
-                )
-                .animate()
-                .scale(
-                  begin: const Offset(0.5, 0.5),
-                  end: const Offset(1.0, 1.0),
-                  duration: logoDuration,
-                  curve: Curves.easeOutBack,
-                )
-                .fade(duration: logoDuration),
-            const SizedBox(height: 20),
-            Text(
-                  'Album',
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF1A1A2E),
+              Color(0xFF16213E),
+              Color(0xFF0F3460),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const Spacer(flex: 3),
+              // ── Logo ─────────────────────────────────────────────────
+              _AnimatedLogo(duration: dur),
+              const SizedBox(height: 28),
+              // ── App Name ─────────────────────────────────────────────
+              Shimmer.fromColors(
+                baseColor: Colors.white,
+                highlightColor: AppColors.primary.withValues(alpha: 0.7),
+                child: Text(
+                  'SnapConnect',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w800,
-                  ),
-                )
-                .animate(delay: titleDelay)
-                .fade(duration: titleDuration)
-                .slideY(
-                  begin: 0.3,
-                  end: 0,
-                  duration: titleDuration,
-                  curve: Curves.easeOut,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1.2,
+                        fontSize: 36,
+                      ),
                 ),
-            const SizedBox(height: 8),
-            Text(
-              'Your memories, beautifully',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyLarge?.copyWith(color: AppColors.textSecondary),
-            ).animate(delay: taglineDelay).fade(duration: titleDuration),
-          ],
+              )
+                  .animate(delay: delayTitle)
+                  .fadeIn(duration: dur)
+                  .slideY(begin: 0.3, end: 0, duration: dur),
+              const SizedBox(height: 12),
+              // ── Tagline ──────────────────────────────────────────────
+              Text(
+                'Capture · Share · Celebrate',
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      letterSpacing: 2.0,
+                      fontWeight: FontWeight.w300,
+                    ),
+              )
+                  .animate(delay: delayTagline)
+                  .fadeIn(duration: dur)
+                  .slideY(begin: 0.2, end: 0, duration: dur),
+              const Spacer(flex: 3),
+              // ── Loading Indicator ────────────────────────────────────
+              SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.white.withValues(alpha: 0.5),
+                  ),
+                ),
+              ).animate(delay: delayLoader).fadeIn(duration: 400.ms),
+              const SizedBox(height: 48),
+            ],
+          ),
         ),
       ),
     );
+  }
+}
+
+class _AnimatedLogo extends StatelessWidget {
+  const _AnimatedLogo({required this.duration});
+  final Duration duration;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 110,
+      height: 110,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary,
+            Color(0xFFC77DFF),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.4),
+            blurRadius: 40,
+            spreadRadius: 8,
+          ),
+        ],
+      ),
+      child: const Icon(
+        Icons.camera_alt_rounded,
+        size: 48,
+        color: Colors.white,
+      ),
+    )
+        .animate()
+        .scale(
+          begin: const Offset(0.3, 0.3),
+          end: const Offset(1.0, 1.0),
+          duration: duration,
+          curve: Curves.easeOutBack,
+        )
+        .fadeIn(duration: duration);
   }
 }

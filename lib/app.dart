@@ -1,36 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
-import 'package:snapconnect/core/constants/app_text_styles.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
-import 'package:snapconnect/core/services/session_service.dart';
-import 'package:snapconnect/features/albums/album_detail_screen.dart';
-import 'package:snapconnect/features/albums/albums_screen.dart';
-import 'package:snapconnect/features/albums/create_album_screen.dart';
-import 'package:snapconnect/features/onboarding/onboarding_screen.dart';
-import 'package:snapconnect/features/party/create_party_screen.dart';
-import 'package:snapconnect/features/party/join_party_screen.dart';
-import 'package:snapconnect/features/party/parties_screen.dart';
-import 'package:snapconnect/features/party/party_detail_screen.dart';
-import 'package:snapconnect/features/photos/photo_viewer_screen.dart';
-import 'package:snapconnect/features/photos/upload_screen.dart';
-import 'package:snapconnect/features/profile/profile_screen.dart';
-import 'package:snapconnect/features/splash/splash_screen.dart';
-import 'package:snapconnect/widgets/app_navbar.dart';
-import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/constants/app_text_styles.dart';
+import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/providers/app_providers.dart';
-import 'package:snapconnect/core/services/session_service.dart';
 import 'package:snapconnect/features/albums/album_detail_screen.dart';
 import 'package:snapconnect/features/albums/albums_screen.dart';
 import 'package:snapconnect/features/albums/create_album_screen.dart';
+import 'package:snapconnect/features/events/presentation/screens/create_event_screen.dart';
+import 'package:snapconnect/features/events/presentation/screens/event_qr_screen.dart';
+import 'package:snapconnect/features/events/presentation/screens/host_album_screen.dart';
+import 'package:snapconnect/features/events/presentation/screens/host_dashboard_screen.dart';
+import 'package:snapconnect/features/guest/presentation/screens/event_album_screen.dart';
+import 'package:snapconnect/features/guest/presentation/screens/guest_landing_screen.dart';
+import 'package:snapconnect/features/guest/presentation/screens/my_photos_screen.dart';
+import 'package:snapconnect/features/guest/presentation/screens/photo_picker_screen.dart';
+import 'package:snapconnect/features/guest/presentation/screens/upload_success_screen.dart';
 import 'package:snapconnect/features/onboarding/onboarding_screen.dart';
 import 'package:snapconnect/features/party/create_party_screen.dart';
 import 'package:snapconnect/features/party/join_party_screen.dart';
@@ -44,7 +31,6 @@ import 'package:snapconnect/features/auth/presentation/pages/login_page.dart';
 import 'package:snapconnect/features/auth/presentation/pages/register_page.dart';
 import 'package:snapconnect/features/auth/presentation/BloC/auth_cubit.dart';
 import 'package:snapconnect/features/auth/presentation/BloC/auth_state.dart';
-import 'package:snapconnect/features/auth/data/repositories/auth_repository.dart';
 import 'package:snapconnect/widgets/app_navbar.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
@@ -56,23 +42,20 @@ class SnapConnectApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
 
-    return RepositoryProvider(
-      create: (context) => AuthRepository(),
-      child: BlocProvider(
-        create: (context) => AuthCubit(context.read<AuthRepository>())..checkAuth(),
-        child: Builder(
-          builder: (context) {
-            final router = _buildRouter(context);
-            return MaterialApp.router(
-              title: 'SnapConnect',
-              debugShowCheckedModeBanner: false,
-              themeMode: themeMode,
-              theme: _lightTheme(),
-              darkTheme: _darkTheme(),
-              routerConfig: router,
-            );
-          },
-        ),
+    return BlocProvider(
+      create: (_) => sl<AuthCubit>()..checkAuth(),
+      child: Builder(
+        builder: (context) {
+          final router = _buildRouter(context);
+          return MaterialApp.router(
+            title: 'SnapConnect',
+            debugShowCheckedModeBanner: false,
+            themeMode: themeMode,
+            theme: _lightTheme(),
+            darkTheme: _darkTheme(),
+            routerConfig: router,
+          );
+        },
       ),
     );
   }
@@ -81,13 +64,20 @@ class SnapConnectApp extends ConsumerWidget {
     return GoRouter(
       initialLocation: '/splash',
       redirect: (context, state) {
-        if (state.matchedLocation == '/splash') {
+        if (state.matchedLocation == '/splash' ||
+            state.matchedLocation == '/onboarding') {
+          return null;
+        }
+
+        // Guest routes don't require auth
+        if (state.matchedLocation.startsWith('/guest/')) {
           return null;
         }
 
         final authState = context.read<AuthCubit>().state;
         final bool isAuthenticated = authState is Authenticated;
-        final bool isLoggingIn = state.matchedLocation == '/login' || state.matchedLocation == '/register';
+        final bool isLoggingIn = state.matchedLocation == '/login' ||
+            state.matchedLocation == '/register';
 
         if (!isAuthenticated && !isLoggingIn) {
           return '/login';
@@ -126,6 +116,65 @@ class SnapConnectApp extends ConsumerWidget {
             child: const OnboardingScreen(),
           ),
         ),
+        // ── Guest routes (no auth required) ──────────────────────────
+        GoRoute(
+          path: '/guest/:joinCode',
+          pageBuilder: (context, state) {
+            final joinCode = state.pathParameters['joinCode'] ?? '';
+            return _buildFadeTransitionPage(
+              state: state,
+              child: GuestLandingScreen(joinCode: joinCode),
+            );
+          },
+          routes: [
+            GoRoute(
+              path: 'album',
+              pageBuilder: (context, state) {
+                final joinCode = state.pathParameters['joinCode'] ?? '';
+                return _buildFadeTransitionPage(
+                  state: state,
+                  child: EventAlbumScreen(joinCode: joinCode),
+                );
+              },
+            ),
+            GoRoute(
+              path: 'pick',
+              pageBuilder: (context, state) {
+                final joinCode = state.pathParameters['joinCode'] ?? '';
+                return _buildFadeTransitionPage(
+                  state: state,
+                  child: PhotoPickerScreen(joinCode: joinCode),
+                );
+              },
+            ),
+            GoRoute(
+              path: 'my-photos',
+              pageBuilder: (context, state) {
+                final joinCode = state.pathParameters['joinCode'] ?? '';
+                return _buildFadeTransitionPage(
+                  state: state,
+                  child: MyPhotosScreen(joinCode: joinCode),
+                );
+              },
+            ),
+          ],
+        ),
+        GoRoute(
+          path: '/upload-success',
+          pageBuilder: (context, state) {
+            final count =
+                int.tryParse(state.uri.queryParameters['count'] ?? '0') ?? 0;
+            final joinCode = state.uri.queryParameters['joinCode'] ?? '';
+            return _buildFadeTransitionPage(
+              state: state,
+              child: UploadSuccessScreen(
+                photoCount: count,
+                joinCode: joinCode,
+              ),
+            );
+          },
+        ),
+        // ── Authenticated shell routes ───────────────────────────────
         ShellRoute(
           builder: (context, state, child) {
             return _ShellScaffold(location: state.matchedLocation, child: child);
@@ -163,6 +212,41 @@ class SnapConnectApp extends ConsumerWidget {
                   child: UploadScreen(
                     initialAlbumId: state.uri.queryParameters['albumId'],
                   ),
+                );
+              },
+            ),
+            // ── Events ───────────────────────────────────────────────
+            GoRoute(
+              path: '/events',
+              pageBuilder: (context, state) => _buildFadeTransitionPage(
+                state: state,
+                child: const HostDashboardScreen(),
+              ),
+            ),
+            GoRoute(
+              path: '/events/create',
+              pageBuilder: (context, state) => _buildFadeTransitionPage(
+                state: state,
+                child: const CreateEventScreen(),
+              ),
+            ),
+            GoRoute(
+              path: '/events/:joinCode/qr',
+              pageBuilder: (context, state) {
+                final joinCode = state.pathParameters['joinCode'] ?? '';
+                return _buildFadeTransitionPage(
+                  state: state,
+                  child: EventQRScreen(joinCode: joinCode),
+                );
+              },
+            ),
+            GoRoute(
+              path: '/events/:joinCode/album',
+              pageBuilder: (context, state) {
+                final joinCode = state.pathParameters['joinCode'] ?? '';
+                return _buildFadeTransitionPage(
+                  state: state,
+                  child: HostAlbumScreen(joinCode: joinCode),
                 );
               },
             ),
@@ -258,14 +342,17 @@ class _ShellScaffold extends ConsumerWidget {
   final Widget child;
 
   int _currentIndex(String route) {
-    if (route.startsWith('/party')) {
+    if (route.startsWith('/events')) {
       return 1;
     }
-    if (route.startsWith('/upload')) {
+    if (route.startsWith('/party')) {
       return 2;
     }
-    if (route.startsWith('/profile')) {
+    if (route.startsWith('/upload')) {
       return 3;
+    }
+    if (route.startsWith('/profile')) {
+      return 4;
     }
     return 0;
   }
@@ -275,8 +362,10 @@ class _ShellScaffold extends ConsumerWidget {
       case 0:
         return '/';
       case 1:
+        return '/events';
+      case 2:
         return '/party';
-      case 3:
+      case 4:
         return '/profile';
       default:
         return '/';
@@ -318,7 +407,7 @@ class _ShellScaffold extends ConsumerWidget {
         uploadInProgress: uploadState.isUploading,
         uploadProgress: progress,
         onTap: (selectedIndex) {
-          if (selectedIndex == 2) {
+          if (selectedIndex == 3) {
             _openUpload(context, ref);
             return;
           }

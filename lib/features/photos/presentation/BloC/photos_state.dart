@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import '../../../../app/lib/types.dart'; // Wait, I need to check where types are in flutter
 
 // Actually, I'll define a simple Photo model for Flutter if it doesn't exist.
 class Photo extends Equatable {

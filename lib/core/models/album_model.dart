@@ -47,7 +47,7 @@ class AlbumModel {
   /// Creates a copy with selective field updates.
   AlbumModel copyWith({
     String? id,
-    String? name,
+    String? fullName,
     String? coverUrl,
     String? createdBy,
     String? createdByName,
@@ -56,7 +56,7 @@ class AlbumModel {
   }) {
     return AlbumModel(
       id: id ?? this.id,
-      fullName: fullName ?? fullName,
+      fullName: fullName ?? this.fullName,
       coverUrl: coverUrl ?? this.coverUrl,
       createdBy: createdBy ?? this.createdBy,
       createdByName: createdByName ?? this.createdByName,
