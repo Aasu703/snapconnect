@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:snapconnect/core/models/user_model.dart';
 import 'package:snapconnect/core/providers/controllers_provider.dart';
 import 'package:snapconnect/features/photos/photos_controller.dart';
-import 'dart:io';
 
 // ── State ──────────────────────────────────────────────────────────────────
 

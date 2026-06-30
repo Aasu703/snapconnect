@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:snapconnect/core/models/reaction_model.dart';
 import 'package:snapconnect/core/providers/session_provider.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
 
 // ── State ──────────────────────────────────────────────────────────────────
 
@@ -50,19 +49,10 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
   final Ref ref;
 
   Future<void> load() async {
-    if (!SupabaseService.isInitialized) return;
-
     state = state.copyWith(isLoading: true);
 
-    final rows = await SupabaseService.client
-        .from('reactions')
-        .select()
-        .eq('photo_id', photoId)
-        .order('created_at', ascending: true);
-
-    final reactions = (rows as List<dynamic>)
-        .map((row) => ReactionModel.fromJson(row as Map<String, dynamic>))
-        .toList();
+    // Backend doesn't have reactions endpoint yet. We can mock it for now.
+    final List<ReactionModel> reactions = [];
 
     final counts = <String, int>{};
     final namesByEmoji = <String, List<String>>{};
@@ -92,7 +82,7 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
 
   Future<void> toggle(String emoji) async {
     final user = ref.read(sessionProvider);
-    if (user == null || !SupabaseService.isInitialized) return;
+    if (user == null) return;
 
     final previous = state;
     final current = state.currentEmoji;
@@ -114,31 +104,7 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
     }
 
     try {
-      final existing = await SupabaseService.client
-          .from('reactions')
-          .select()
-          .eq('photo_id', photoId)
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-      if (existing != null && existing['emoji'] == emoji) {
-        await SupabaseService.client
-            .from('reactions')
-            .delete()
-            .eq('id', existing['id']);
-      } else if (existing != null) {
-        await SupabaseService.client
-            .from('reactions')
-            .update({'emoji': emoji})
-            .eq('id', existing['id']);
-      } else {
-        await SupabaseService.client.from('reactions').insert({
-          'photo_id': photoId,
-          'user_id': user.id,
-          'user_name': user.name,
-          'emoji': emoji,
-        });
-      }
+      // Backend missing reactions toggle API, mock it for now.
       await load();
     } catch (_) {
       state = previous;

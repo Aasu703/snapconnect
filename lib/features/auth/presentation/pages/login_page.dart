@@ -58,16 +58,7 @@ class _LoginPageState extends State<LoginPage> {
           width: double.infinity,
           height: double.infinity,
           decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: [0.0, 0.35, 1.0],
-              colors: [
-                Color(0xFF1A1A2E),
-                Color(0xFF16213E),
-                Color(0xFF0F172A),
-              ],
-            ),
+            color: AppColors.background,
           ),
           child: SafeArea(
             child: SingleChildScrollView(
@@ -85,16 +76,16 @@ class _LoginPageState extends State<LoginPage> {
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
-                      borderRadius: BorderRadius.circular(24),
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.06),
+                        color: AppColors.outlineVariant,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
+                          color: const Color(0x0D0D0D14), // 0.05 opacity Ambient Shadow
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
@@ -109,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                                 .textTheme
                                 .headlineMedium
                                 ?.copyWith(
-                                  color: Colors.white,
+                                  color: AppColors.onSurface,
                                   fontWeight: FontWeight.w800,
                                 ),
                           ),
@@ -117,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
                           Text(
                             'Sign in to continue sharing memories',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: AppColors.onSurfaceVariant,
                               fontSize: 14,
                             ),
                           ),
@@ -152,9 +143,9 @@ class _LoginPageState extends State<LoginPage> {
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: Colors.white.withValues(alpha: 0.4),
-                                size: 20,
-                              ),
+                                  color: AppColors.onSurfaceVariant,
+                                  size: 20,
+                                ),
                               onPressed: () => setState(
                                   () => _obscurePassword = !_obscurePassword),
                             ),
@@ -200,7 +191,7 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               Expanded(
                                 child: Divider(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: AppColors.outlineVariant,
                                 ),
                               ),
                               Padding(
@@ -209,14 +200,14 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Text(
                                   'or continue with',
                                   style: TextStyle(
-                                    color: Colors.white.withValues(alpha: 0.35),
+                                    color: AppColors.onSurfaceVariant,
                                     fontSize: 12,
                                   ),
                                 ),
                               ),
                               Expanded(
                                 child: Divider(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: AppColors.outlineVariant,
                                 ),
                               ),
                             ],
@@ -255,7 +246,7 @@ class _LoginPageState extends State<LoginPage> {
                       Text(
                         "Don't have an account? ",
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: AppColors.onSurfaceVariant,
                           fontSize: 14,
                         ),
                       ),
@@ -299,12 +290,10 @@ class _LoginHeader extends StatelessWidget {
             height: 72,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, Color(0xFFC77DFF)],
-              ),
+              color: AppColors.primary,
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.35),
+                  color: AppColors.primary.withValues(alpha: 0.15),
                   blurRadius: 24,
                   spreadRadius: 4,
                 ),
@@ -317,7 +306,7 @@ class _LoginHeader extends StatelessWidget {
           Text(
             'SnapConnect',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
+                  color: AppColors.onSurface,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.5,
                 ),
@@ -357,7 +346,7 @@ class _StyledTextField extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: AppColors.onSurfaceVariant,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -368,43 +357,43 @@ class _StyledTextField extends StatelessWidget {
           keyboardType: keyboardType,
           obscureText: obscureText,
           validator: validator,
-          style: const TextStyle(color: Colors.white, fontSize: 15),
+          style: const TextStyle(color: AppColors.onSurface, fontSize: 15),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(
-              color: Colors.white.withValues(alpha: 0.25),
+              color: AppColors.outlineVariant,
               fontSize: 14,
             ),
             prefixIcon: Icon(icon,
-                size: 20, color: Colors.white.withValues(alpha: 0.4)),
+                size: 20, color: AppColors.onSurfaceVariant),
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.06),
+            fillColor: AppColors.surfaceContainerLowest,
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.08)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                  color: AppColors.outlineVariant),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.08)),
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                  color: AppColors.outlineVariant),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               borderSide:
-                  const BorderSide(color: AppColors.primary, width: 1.5),
+                  const BorderSide(color: AppColors.secondary, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.danger),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               borderSide:
-                  const BorderSide(color: AppColors.danger, width: 1.5),
+                  const BorderSide(color: AppColors.danger, width: 2),
             ),
           ),
         ),
@@ -429,19 +418,14 @@ class _GradientButton extends StatelessWidget {
     return Container(
       height: 56,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        gradient: onPressed != null
-            ? const LinearGradient(
-                colors: [AppColors.primary, Color(0xFF6C63FF)],
-              )
-            : null,
-        color: onPressed == null ? const Color(0xFF334155) : null,
+        borderRadius: BorderRadius.circular(12),
+        color: onPressed == null ? AppColors.outlineVariant : AppColors.primary,
         boxShadow: onPressed != null
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   blurRadius: 16,
-                  offset: const Offset(0, 6),
+                  offset: const Offset(0, 4),
                 ),
               ]
             : null,
@@ -449,7 +433,7 @@ class _GradientButton extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           onTap: onPressed,
           child: Center(
             child: isLoading
@@ -487,14 +471,14 @@ class _SocialButton extends StatelessWidget {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.outlineVariant),
+        color: AppColors.surfaceContainerLowest,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(12),
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -506,12 +490,12 @@ class _SocialButton extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: Colors.white.withValues(alpha: 0.7), size: 22),
+              Icon(icon, color: AppColors.onSurfaceVariant, size: 22),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.onSurfaceVariant,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),

@@ -8,6 +8,8 @@ import 'package:snapconnect/features/auth/domain/usecases/login_usecase.dart';
 import 'package:snapconnect/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:snapconnect/features/auth/domain/usecases/register_usecase.dart';
 import 'package:snapconnect/features/auth/presentation/BloC/auth_cubit.dart';
+import 'package:talker_dio_logger/talker_dio_logger.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 /// Global service locator instance.
 final sl = GetIt.instance;
@@ -17,7 +19,22 @@ final sl = GetIt.instance;
 /// Call this once in [main] before [runApp].
 Future<void> initDependencies() async {
   // ─── External ──────────────────────────────────────────────────────────────
-  sl.registerLazySingleton<Dio>(() => Dio());
+  sl.registerLazySingleton<Talker>(() => TalkerFlutter.init());
+
+  sl.registerLazySingleton<Dio>(() {
+    final dio = Dio();
+    dio.interceptors.add(
+      TalkerDioLogger(
+        talker: sl<Talker>(),
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: true,
+          printResponseHeaders: true,
+          printResponseMessage: true,
+        ),
+      ),
+    );
+    return dio;
+  });
   sl.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(),
   );

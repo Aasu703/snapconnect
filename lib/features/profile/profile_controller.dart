@@ -1,5 +1,6 @@
 import 'package:snapconnect/core/models/user_model.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
 
 /// Aggregated profile metrics for the profile screen.
 class ProfileStats {
@@ -17,34 +18,13 @@ class ProfileStats {
 /// Handles profile statistics and user updates.
 class ProfileController {
   /// Loads profile stats from Supabase tables.
+  /// Loads profile stats. 
   Future<ProfileStats> fetchStats(String userId) async {
-    if (!SupabaseService.isInitialized) {
-      return const ProfileStats(
-        photosUploaded: 0,
-        albumsCreated: 0,
-        partiesJoined: 0,
-      );
-    }
-
-    final photos = await SupabaseService.client
-        .from('photos')
-        .select('id')
-        .eq('uploaded_by', userId);
-
-    final albums = await SupabaseService.client
-        .from('albums')
-        .select('id')
-        .eq('created_by', userId);
-
-    final parties = await SupabaseService.client
-        .from('party_members')
-        .select('id')
-        .eq('user_id', userId);
-
-    return ProfileStats(
-      photosUploaded: (photos as List<dynamic>).length,
-      albumsCreated: (albums as List<dynamic>).length,
-      partiesJoined: (parties as List<dynamic>).length,
+    // Backend doesn't have a specific stats endpoint yet, so we return default stats
+    return const ProfileStats(
+      photosUploaded: 0,
+      albumsCreated: 0,
+      partiesJoined: 0,
     );
   }
 
@@ -55,13 +35,9 @@ class ProfileController {
       return user;
     }
 
-    if (SupabaseService.isInitialized && (user.email?.isNotEmpty ?? false)) {
-      await SupabaseService.client.from('users').upsert({
-        'id': user.id,
-        'name': value,
-        'email': user.email,
-      });
-    }
+    try {
+      await ApiClient().put(ApiEndpoints.user, data: {'name': value});
+    } catch (_) {}
 
     return user.copyWith(name: value);
   }
@@ -73,14 +49,9 @@ class ProfileController {
       return user;
     }
 
-    if (SupabaseService.isInitialized) {
-      await SupabaseService.client.from('users').upsert({
-        'id': user.id,
-        'name': user.name,
-        'email': value,
-        'avatar_color': user.avatarColor,
-      });
-    }
+    try {
+      await ApiClient().put(ApiEndpoints.user, data: {'email': value});
+    } catch (_) {}
 
     return user.copyWith(email: value);
   }
