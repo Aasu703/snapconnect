@@ -1,21 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
-import 'package:snapconnect/core/providers/controllers_provider.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/di/injection_container.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/features/profile/profile_controller.dart';
+import 'package:snapconnect/features/onboarding/onboarding_controller.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 import 'package:snapconnect/widgets/avatar_widget.dart';
 
 /// Profile screen that always renders a visible state.
-class ProfileScreen extends ConsumerStatefulWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+  State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   bool _isSubmitting = false;
@@ -24,7 +26,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   void initState() {
     super.initState();
     debugPrint('ProfileScreen mounted');
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user != null) {
       _nameController.text = user.name;
       _emailController.text = user.email ?? '';
@@ -39,7 +41,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _editName() async {
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user == null) {
       return;
     }
@@ -75,15 +77,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return;
     }
 
-    final updated = await ref
-        .read(profileControllerProvider)
-        .updateName(user, name);
-    await ref.read(sessionProvider.notifier).updateUser(updated);
+    final updated = await sl<ProfileController>().updateName(user, name);
+    if (!mounted) return;
+    await context.read<SessionCubit>().updateUser(updated);
     debugPrint('ProfileScreen: updated name to ${updated.name}');
   }
 
   Future<void> _addEmail() async {
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user == null) {
       return;
     }
@@ -119,10 +120,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       return;
     }
 
-    final updated = await ref
-        .read(profileControllerProvider)
-        .addEmail(user, email);
-    await ref.read(sessionProvider.notifier).updateUser(updated);
+    final updated = await sl<ProfileController>().addEmail(user, email);
+    if (!mounted) return;
+    await context.read<SessionCubit>().updateUser(updated);
     debugPrint('ProfileScreen: updated email to ${updated.email}');
   }
 
@@ -146,13 +146,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final user = await ref
-          .read(onboardingControllerProvider)
-          .createOrRestoreUser(
+      final user = await sl<OnboardingController>().createOrRestoreUser(
             name: _nameController.text,
             email: _emailController.text,
           );
-      await ref.read(sessionProvider.notifier).setUser(user);
+      if (!mounted) return;
+      await context.read<SessionCubit>().setUser(user);
       debugPrint('ProfileScreen: identity created/restored for ${user.id}');
     } catch (e, stack) {
       debugPrint('ProfileScreen identity error: $e');
@@ -170,7 +169,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _logout() async {
-    await ref.read(sessionProvider.notifier).clear();
+    await context.read<SessionCubit>().clear();
     debugPrint('ProfileScreen: user logged out');
     if (mounted) {
       context.go('/');
@@ -180,8 +179,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     debugPrint('ProfileScreen build called');
-    final user = ref.watch(sessionProvider);
-    final themeMode = ref.watch(themeModeProvider);
+    final user = context.watch<SessionCubit>().state;
+    final themeMode = context.watch<ThemeModeCubit>().state;
 
     if (user == null) {
       return Scaffold(
@@ -312,7 +311,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             value: themeMode == ThemeMode.dark,
-            onChanged: (_) => ref.read(themeModeProvider.notifier).toggle(),
+            onChanged: (_) => context.read<ThemeModeCubit>().toggle(),
             title: const Text('Dark mode'),
             secondary: const Icon(Icons.dark_mode_outlined),
           ),

@@ -1,14 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
 import 'package:snapconnect/core/models/photo_model.dart';
-import 'package:snapconnect/core/providers/albums_provider.dart';
-import 'package:snapconnect/core/providers/controllers_provider.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/albums_bloc.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/features/albums/albums_controller.dart';
+import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/services/download_service.dart';
 import 'package:snapconnect/widgets/confirm_dialog.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
@@ -17,25 +18,30 @@ import 'package:snapconnect/widgets/photo_grid.dart';
 import 'package:snapconnect/widgets/reaction_bar.dart';
 
 /// Screen showing one album with photo grid and actions.
-class AlbumDetailScreen extends ConsumerStatefulWidget {
+class AlbumDetailScreen extends StatefulWidget {
   const AlbumDetailScreen({super.key, required this.albumId});
 
   final String albumId;
 
   @override
-  ConsumerState<AlbumDetailScreen> createState() => _AlbumDetailScreenState();
+  State<AlbumDetailScreen> createState() => _AlbumDetailScreenState();
 }
 
-class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
+class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AlbumsBloc>().add(FetchAlbumPhotos(widget.albumId));
+    });
 
     // Keeps party/album feeds fresh with periodic refresh.
     _refreshTimer = Timer.periodic(AppConstants.partyRefreshInterval, (_) {
-      ref.invalidate(albumDetailProvider(widget.albumId));
+      if (mounted) {
+        context.read<AlbumsBloc>().add(FetchAlbumPhotos(widget.albumId));
+      }
     });
   }
 
@@ -47,7 +53,7 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
 
   /// Displays actions for one selected photo.
   Future<void> _showPhotoActions(PhotoModel photo) async {
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -82,10 +88,11 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
                       return;
                     }
 
-                    await ref
-                        .read(albumsControllerProvider)
+                    await sl<AlbumsController>()
                         .deletePhoto(photoId: photo.id, ownerUserId: user.id);
-                    ref.invalidate(albumDetailProvider(widget.albumId));
+                    if (context.mounted) {
+                      context.read<AlbumsBloc>().add(FetchAlbumPhotos(widget.albumId));
+                    }
                   },
                 ),
             ],
@@ -105,7 +112,7 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final photosAsync = ref.watch(albumDetailProvider(widget.albumId));
+    final albumsState = context.watch<AlbumsBloc>().state;
 
     return Scaffold(
       appBar: AppBar(
@@ -120,10 +127,10 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
             tooltip: 'Download all',
             icon: const Icon(Icons.download_for_offline_outlined),
             onPressed: () async {
-              final photos = await ref.read(
-                albumDetailProvider(widget.albumId).future,
-              );
-              await _downloadAll(photos);
+              final photos = context.read<AlbumsBloc>().state.albumPhotos;
+              if (photos != null && photos.isNotEmpty) {
+                await _downloadAll(photos);
+              }
             },
           ),
           IconButton(
@@ -136,19 +143,26 @@ class _AlbumDetailScreenState extends ConsumerState<AlbumDetailScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async =>
-            ref.invalidate(albumDetailProvider(widget.albumId)),
-        child: photosAsync.when(
-          loading: () => const LoadingSkeleton(),
-          error: (error, _) => EmptyState(
-            title: 'Could not load photos',
-            subtitle: error.toString(),
-            icon: Icons.error_outline,
-            actionLabel: 'Retry',
-            onAction: () => ref.invalidate(albumDetailProvider(widget.albumId)),
-          ),
-          data: (photos) {
-            if (photos.isEmpty) {
+        onRefresh: () async {
+          context.read<AlbumsBloc>().add(FetchAlbumPhotos(widget.albumId));
+        },
+        child: Builder(
+          builder: (context) {
+            if (albumsState.isLoadingAlbumPhotos && albumsState.albumPhotos == null) {
+              return const LoadingSkeleton();
+            }
+            if (albumsState.albumPhotosError != null && albumsState.albumPhotos == null) {
+              return EmptyState(
+                title: 'Could not load photos',
+                subtitle: albumsState.albumPhotosError.toString(),
+                icon: Icons.error_outline,
+                actionLabel: 'Retry',
+                onAction: () => context.read<AlbumsBloc>().add(FetchAlbumPhotos(widget.albumId)),
+              );
+            }
+
+            final photos = albumsState.albumPhotos ?? [];
+            if (photos.isEmpty && !albumsState.isLoadingAlbumPhotos) {
               return EmptyState(
                 title: 'This album is empty',
                 subtitle: 'Upload your first photo to get started.',

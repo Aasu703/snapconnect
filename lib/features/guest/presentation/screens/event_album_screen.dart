@@ -22,7 +22,6 @@ class EventAlbumScreen extends StatefulWidget {
 class _EventAlbumScreenState extends State<EventAlbumScreen> {
   List<PhotoModel> _photos = [];
   String _eventName = '';
-  String _eventId = '';
   bool _isLoading = true;
 
   @override
@@ -43,7 +42,6 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
       
       final party = partyResponse.data['data'];
 
-      _eventId = party['id'].toString();
       _eventName = party['name'].toString();
 
       final photosResponse = await ApiClient().get(ApiEndpoints.albumPhotos(party['album_id']));

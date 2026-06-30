@@ -1,12 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:snapconnect/core/api/api.endpoints.dart';
-
-// Provider to inject the ApiClient into your repositories/notifiers
-final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient();
-});
 
 class ApiClient {
   late final Dio _dio;
