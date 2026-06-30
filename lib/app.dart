@@ -34,6 +34,7 @@ import 'package:snapconnect/features/auth/presentation/BloC/auth_cubit.dart';
 import 'package:snapconnect/features/auth/presentation/BloC/auth_state.dart';
 import 'package:snapconnect/widgets/app_navbar.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 /// Root app widget containing router and global themes.
 class SnapConnectApp extends ConsumerWidget {
@@ -63,6 +64,7 @@ class SnapConnectApp extends ConsumerWidget {
 
   GoRouter _buildRouter(BuildContext context) {
     return GoRouter(
+      observers: [TalkerRouteObserver(sl<Talker>())],
       initialLocation: '/splash',
       redirect: (context, state) {
         if (state.matchedLocation == '/splash' ||
@@ -433,7 +435,15 @@ ThemeData _lightTheme() {
       seedColor: AppColors.primary,
       brightness: Brightness.light,
       primary: AppColors.primary,
+      onPrimary: AppColors.onPrimary,
+      secondary: AppColors.secondary,
+      onSecondary: AppColors.onSecondary,
       surface: AppColors.surface,
+      onSurface: AppColors.onSurface,
+      error: AppColors.error,
+      onError: AppColors.onError,
+      outline: AppColors.outline,
+      outlineVariant: AppColors.outlineVariant,
     ),
     textTheme: AppTextStyles.lightTextTheme(),
     scaffoldBackgroundColor: AppColors.background,
@@ -441,36 +451,50 @@ ThemeData _lightTheme() {
 
   return base.copyWith(
     cardTheme: CardThemeData(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 0, // Handled via ambient shadow in widgets
+      color: AppColors.surfaceContainerLowest, // Pure white
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12), // 12px standard radius
+        side: const BorderSide(color: AppColors.outlineVariant, width: 1), // 1px Light Grey
+      ),
+      margin: EdgeInsets.zero,
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFFF1F3F5),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      fillColor: AppColors.surfaceContainerLowest, // White input
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(50),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.outlineVariant, width: 1),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(50),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.outlineVariant, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(50),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.secondary, width: 2), // Indigo
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
-        shape: const StadiumBorder(),
+        backgroundColor: AppColors.primary, // Dark Navy
+        foregroundColor: AppColors.onPrimary, // White text
+        minimumSize: const Size.fromHeight(52), // Tighter but still large
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
-        shape: const StadiumBorder(),
+        foregroundColor: AppColors.onSurface, // Dark text
+        backgroundColor: AppColors.surfaceContainerHighest, // Light Grey bg per instructions
+        minimumSize: const Size.fromHeight(52),
+        side: BorderSide.none, // Secondary buttons use background, not just outline
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     ),
   );
@@ -483,7 +507,9 @@ ThemeData _darkTheme() {
       seedColor: AppColors.primary,
       brightness: Brightness.dark,
       primary: AppColors.primary,
+      onPrimary: AppColors.onPrimary,
       surface: AppColors.darkSurface,
+      onSurface: AppColors.darkTextPrimary,
     ),
     textTheme: AppTextStyles.darkTextTheme(),
     scaffoldBackgroundColor: AppColors.darkBackground,
@@ -492,35 +518,43 @@ ThemeData _darkTheme() {
   return base.copyWith(
     cardTheme: CardThemeData(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: AppColors.darkSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: AppColors.darkBorder, width: 1),
+      ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: const Color(0xFF1E293B),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(50),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.darkBorder, width: 1),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(50),
-        borderSide: BorderSide.none,
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.darkBorder, width: 1),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(50),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.secondary, width: 2),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
-        shape: const StadiumBorder(),
+        minimumSize: const Size.fromHeight(52),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(56),
-        shape: const StadiumBorder(),
+        minimumSize: const Size.fromHeight(52),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
       ),
     ),
   );

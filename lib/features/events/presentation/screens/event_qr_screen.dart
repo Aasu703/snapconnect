@@ -6,7 +6,8 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
 
 /// Premium QR code display screen with glassmorphism styling
 /// for sharing event join links.
@@ -30,14 +31,12 @@ class _EventQRScreenState extends State<EventQRScreen> {
 
   Future<void> _loadEvent() async {
     try {
-      final row = await SupabaseService.client
-          .from('parties')
-          .select('name')
-          .eq('join_code', widget.joinCode)
-          .maybeSingle();
+      final response = await ApiClient().get(ApiEndpoints.partyByCode(widget.joinCode));
       if (mounted) {
         setState(() {
-          _eventName = row?['name']?.toString() ?? 'Event';
+          if (response.statusCode == 200 && response.data['data'] != null) {
+            _eventName = response.data['data']['name']?.toString() ?? 'Event';
+          }
           _isLoading = false;
         });
       }

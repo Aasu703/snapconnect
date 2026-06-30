@@ -7,7 +7,7 @@ class ApiEndpoints {
 
   // configure base URL based on platform
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '192.168.144.1';
+  static const String _ipAddress = '192.168.1.7';
   static const int _port = 5050;
 
   // Base URL configuration
@@ -61,4 +61,22 @@ class ApiEndpoints {
   static const String userUploadPhoto = 'auth/update-profile';
   static String userPicture(String filename) =>
       resolveMediaUrl('user_photos/$filename');
+
+  // -------------------------- PARTIES -------------------------
+  static const String parties = 'parties';
+  static const String partyJoin = 'parties/join';
+  static String party(String id) => 'parties/$id';
+  static String partyByCode(String code) => 'parties/code/$code';
+  static String hostParties(String userId) => 'parties/host/$userId';
+  static String joinedParties(String userId) => 'parties/joined/$userId';
+
+  // -------------------------- ALBUMS -------------------------
+  static const String albums = 'albums';
+  static String album(String id) => 'albums/$id';
+  static String userAlbums(String userId) => 'albums/user/$userId';
+
+  // -------------------------- PHOTOS -------------------------
+  static const String photoUpload = 'photos/upload';
+  static String albumPhotos(String albumId) => 'photos/album/$albumId';
+  static String photo(String id) => 'photos/$id';
 }

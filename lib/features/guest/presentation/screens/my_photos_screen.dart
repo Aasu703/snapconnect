@@ -7,7 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/models/photo_model.dart';
 import 'package:snapconnect/core/providers/session_provider.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 /// Personalized view showing photos contributed by the current guest.
@@ -37,29 +38,25 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
     }
 
     try {
-      final party = await SupabaseService.client
-          .from('parties')
-          .select('id')
-          .eq('join_code', widget.joinCode)
-          .maybeSingle();
-
-      if (party == null) {
+      final partyResponse = await ApiClient().get(ApiEndpoints.partyByCode(widget.joinCode));
+      
+      if (partyResponse.statusCode != 200 || partyResponse.data['data'] == null) {
         if (mounted) setState(() => _isLoading = false);
         return;
       }
+      
+      final party = partyResponse.data['data'];
 
-      final rows = await SupabaseService.client
-          .from('photos')
-          .select()
-          .eq('album_id', party['id'])
-          .eq('uploader_id', user.id)
-          .order('created_at', ascending: false);
+      final photosResponse = await ApiClient().get(ApiEndpoints.albumPhotos(party['album_id']));
 
       if (mounted) {
         setState(() {
-          _photos = (rows as List<dynamic>)
-              .map((r) => PhotoModel.fromJson(r as Map<String, dynamic>))
-              .toList();
+          if (photosResponse.statusCode == 200) {
+            final allPhotos = (photosResponse.data['data'] as List)
+                .map((r) => PhotoModel.fromJson(r))
+                .toList();
+            _photos = allPhotos.where((p) => p.uploadedBy == user.id).toList();
+          }
           _isLoading = false;
         });
       }
@@ -100,7 +97,7 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
     if (confirmed != true) return;
 
     try {
-      await SupabaseService.client.from('photos').delete().eq('id', photoId);
+      await ApiClient().delete(ApiEndpoints.photo(photoId));
       setState(() => _photos.removeWhere((p) => p.id == photoId));
     } catch (_) {
       if (mounted) {

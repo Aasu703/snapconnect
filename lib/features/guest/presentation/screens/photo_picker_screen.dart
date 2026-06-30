@@ -7,9 +7,11 @@ import 'package:image_picker/image_picker.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
 import 'package:snapconnect/core/providers/session_provider.dart';
-import 'package:snapconnect/core/services/cloudinary_service.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
+import 'package:dio/dio.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 
 /// Streamlined photo picker for guests to select and upload
 /// photos to an event album.
@@ -36,13 +38,9 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
 
   Future<void> _resolveEventId() async {
     try {
-      final party = await SupabaseService.client
-          .from('parties')
-          .select('id')
-          .eq('join_code', widget.joinCode)
-          .maybeSingle();
-      if (party != null) {
-        _eventId = party['id'].toString();
+      final response = await ApiClient().get(ApiEndpoints.partyByCode(widget.joinCode));
+      if (response.statusCode == 200 && response.data['data'] != null) {
+        _eventId = response.data['data']['id'].toString();
       }
     } catch (_) {}
   }
@@ -85,18 +83,32 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
 
     for (final file in _selectedFiles) {
       try {
-        final url = await CloudinaryService.instance.uploadXFile(
-          file,
-          folder: '${AppConstants.cloudinaryFolder}/${widget.joinCode}',
+        final formData = FormData.fromMap({
+          'album_id': _eventId,
+          'title': '',
+          'uploaded_by': user?.id ?? 'guest',
+          'uploaded_by_name': user?.name ?? 'Guest',
+        });
+
+        if (kIsWeb) {
+          final bytes = await file.readAsBytes();
+          formData.files.add(MapEntry(
+            'file',
+            MultipartFile.fromBytes(bytes, filename: file.name),
+          ));
+        } else {
+          formData.files.add(MapEntry(
+            'file',
+            await MultipartFile.fromFile(file.path, filename: file.name),
+          ));
+        }
+
+        final response = await ApiClient().post(
+          ApiEndpoints.photoUpload,
+          data: formData,
         );
 
-        if (url != null) {
-          await SupabaseService.client.from('photos').insert({
-            'album_id': _eventId,
-            'url': url,
-            'uploader_name': user?.name ?? 'Guest',
-            'uploader_id': user?.id,
-          });
+        if (response.statusCode == 200 || response.statusCode == 201) {
           successCount++;
         }
 

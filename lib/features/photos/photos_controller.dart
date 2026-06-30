@@ -3,8 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
 import 'package:snapconnect/core/models/user_model.dart';
-import 'package:snapconnect/core/services/cloudinary_service.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
+import 'package:dio/dio.dart';
 
 /// Supported upload status values for each selected photo.
 enum UploadItemStatus { pending, uploading, done, error }
@@ -157,30 +158,42 @@ class PhotosController {
       onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
 
       try {
-        final cloudinaryUrl = await CloudinaryService.instance.uploadXFile(
-          item.file,
-        );
-        if (cloudinaryUrl == null) {
-          throw Exception('Failed to upload to Cloudinary.');
+        final formData = FormData.fromMap({
+          'album_id': albumId,
+          'title': title?.trim().isEmpty ?? true ? null : title!.trim(),
+          'uploaded_by': user.id,
+          'uploaded_by_name': user.name,
+        });
+
+        if (kIsWeb) {
+          final bytes = await item.file.readAsBytes();
+          formData.files.add(MapEntry(
+            'file',
+            MultipartFile.fromBytes(bytes, filename: item.file.name),
+          ));
+        } else {
+          formData.files.add(MapEntry(
+            'file',
+            await MultipartFile.fromFile(item.file.path, filename: item.file.name),
+          ));
         }
 
-        if (SupabaseService.isInitialized) {
-          await SupabaseService.client.from('photos').insert({
-            'album_id': albumId,
-            'url': cloudinaryUrl,
-            'title': title?.trim().isEmpty ?? true ? null : title!.trim(),
-            'uploaded_by': user.id,
-            'uploaded_by_name': user.name,
-          });
+        final response = await ApiClient().post(
+          ApiEndpoints.photoUpload,
+          data: formData,
+        );
 
-          await _setCoverIfNeeded(albumId: albumId, coverUrl: cloudinaryUrl);
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final data = response.data['data'];
+          updatedItems[i] = updatedItems[i].copyWith(
+            status: UploadItemStatus.done,
+            uploadedUrl: ApiEndpoints.resolveMediaUrl(data['url']),
+          );
+          uploaded++;
+        } else {
+           throw Exception('Failed to upload photo.');
         }
 
-        updatedItems[i] = updatedItems[i].copyWith(
-          status: UploadItemStatus.done,
-          uploadedUrl: cloudinaryUrl,
-        );
-        uploaded++;
         onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
       } catch (error) {
         updatedItems[i] = updatedItems[i].copyWith(
@@ -199,22 +212,4 @@ class PhotosController {
     );
   }
 
-  Future<void> _setCoverIfNeeded({
-    required String albumId,
-    required String coverUrl,
-  }) async {
-    final existing = await SupabaseService.client
-        .from('albums')
-        .select('cover_url')
-        .eq('id', albumId)
-        .maybeSingle();
-
-    final currentCover = existing?['cover_url']?.toString();
-    if (currentCover == null || currentCover.isEmpty) {
-      await SupabaseService.client
-          .from('albums')
-          .update({'cover_url': coverUrl})
-          .eq('id', albumId);
-    }
-  }
 }

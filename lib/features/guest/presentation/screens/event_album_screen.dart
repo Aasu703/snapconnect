@@ -5,7 +5,8 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/models/photo_model.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 /// Collaborative event album grid for guests with real-time
@@ -33,31 +34,27 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
 
   Future<void> _loadData() async {
     try {
-      final party = await SupabaseService.client
-          .from('parties')
-          .select()
-          .eq('join_code', widget.joinCode)
-          .maybeSingle();
-
-      if (party == null) {
+      final partyResponse = await ApiClient().get(ApiEndpoints.partyByCode(widget.joinCode));
+      
+      if (partyResponse.statusCode != 200 || partyResponse.data['data'] == null) {
         if (mounted) setState(() => _isLoading = false);
         return;
       }
+      
+      final party = partyResponse.data['data'];
 
       _eventId = party['id'].toString();
       _eventName = party['name'].toString();
 
-      final rows = await SupabaseService.client
-          .from('photos')
-          .select()
-          .eq('album_id', _eventId)
-          .order('created_at', ascending: false);
+      final photosResponse = await ApiClient().get(ApiEndpoints.albumPhotos(party['album_id']));
 
       if (mounted) {
         setState(() {
-          _photos = (rows as List<dynamic>)
-              .map((r) => PhotoModel.fromJson(r as Map<String, dynamic>))
-              .toList();
+          if (photosResponse.statusCode == 200) {
+            _photos = (photosResponse.data['data'] as List)
+                .map((r) => PhotoModel.fromJson(r))
+                .toList();
+          }
           _isLoading = false;
         });
       }

@@ -4,15 +4,57 @@ import 'package:flutter/material.dart';
 final class AppColors {
   AppColors._();
 
-  static const primary = Color(0xFF4D96FF);
-  static const success = Color(0xFF6BCB77);
-  static const danger = Color(0xFFFF6B6B);
-  static const warning = Color(0xFFFFC93C);
-  static const surface = Color(0xFFFFFFFF);
-  static const background = Color(0xFFF8F9FA);
-  static const border = Color(0xFFE9ECEF);
-  static const textPrimary = Color(0xFF1A1A2E);
-  static const textSecondary = Color(0xFF6C757D);
+  // --- Stitch Design System Colors ---
+  static const surface = Color(0xFFFBF8FF);
+  static const surfaceDim = Color(0xFFD9D9E8);
+  static const surfaceBright = Color(0xFFFBF8FF);
+  static const surfaceContainerLowest = Color(0xFFFFFFFF);
+  static const surfaceContainerLow = Color(0xFFF4F2FF);
+  static const surfaceContainer = Color(0xFFEDECFC);
+  static const surfaceContainerHigh = Color(0xFFE8E7F6);
+  static const surfaceContainerHighest = Color(0xFFE2E1F0);
+  
+  static const onSurface = Color(0xFF1A1B25);
+  static const onSurfaceVariant = Color(0xFF46464F);
+  
+  static const inverseSurface = Color(0xFF2E303B);
+  static const inverseOnSurface = Color(0xFFF0EFFF);
+  
+  static const outline = Color(0xFF777680);
+  static const outlineVariant = Color(0xFFC7C5D0);
+  static const surfaceTint = Color(0xFF565B8A);
+  
+  static const primary = Color(0xFF030735); // Dark Navy
+  static const onPrimary = Color(0xFFFFFFFF);
+  static const primaryContainer = Color(0xFF1A1F4B);
+  static const onPrimaryContainer = Color(0xFF8287B9);
+  static const inversePrimary = Color(0xFFBEC3F9);
+  
+  static const secondary = Color(0xFF4553C1); // Indigo
+  static const onSecondary = Color(0xFFFFFFFF);
+  static const secondaryContainer = Color(0xFF7E8CFE);
+  static const onSecondaryContainer = Color(0xFF061991);
+  
+  static const tertiary = Color(0xFF00120A);
+  static const onTertiary = Color(0xFFFFFFFF);
+  static const tertiaryContainer = Color(0xFF002A1C); // Teal Green
+  static const onTertiaryContainer = Color(0xFF1C9D74);
+  
+  static const error = Color(0xFFBA1A1A); // Coral Red
+  static const onError = Color(0xFFFFFFFF);
+  static const errorContainer = Color(0xFFFFDAD6);
+  static const onErrorContainer = Color(0xFF93000A);
+  
+  static const background = Color(0xFFFBF8FF);
+  static const onBackground = Color(0xFF1A1B25);
+
+  // --- Backward Compatibility Aliases ---
+  static const success = tertiaryContainer;
+  static const danger = error;
+  static const warning = Color(0xFFFFC93C); // Kept from original for warning
+  static const border = outlineVariant;
+  static const textPrimary = onSurface;
+  static const textSecondary = onSurfaceVariant;
 
   static const darkSurface = Color(0xFF111827);
   static const darkBackground = Color(0xFF0F172A);
@@ -24,25 +66,24 @@ final class AppColors {
     Color(0xFFFF6B6B),
     Color(0xFFFF8E53),
     Color(0xFFFFC93C),
-    Color(0xFF6BCB77),
-    Color(0xFF4D96FF),
+    success,
+    secondary,
     Color(0xFFC77DFF),
     Color(0xFFFF6FD8),
-    Color(0xFF00C9A7),
+    onTertiaryContainer,
     Color(0xFFF72585),
-    Color(0xFF4361EE),
+    secondaryContainer,
     Color(0xFFFB5607),
-    Color(0xFF3A86FF),
+    primary,
   ];
 
-  // Gradient pairs for event branding
-  static const gradientPrimary = [Color(0xFF4D96FF), Color(0xFF6C63FF)];
-  static const gradientHost = [Color(0xFFC77DFF), Color(0xFFFF6FD8)];
-  static const gradientGuest = [Color(0xFF6BCB77), Color(0xFF00C9A7)];
-  static const gradientDark = [Color(0xFF1A1A2E), Color(0xFF16213E)];
+  // Gradients replaced with solid primary/secondary for minimalist aesthetic
+  static const gradientPrimary = [primary, secondary];
+  static const gradientHost = [secondary, secondaryContainer];
+  static const gradientGuest = [tertiaryContainer, onTertiaryContainer];
+  static const gradientDark = [primary, primaryContainer];
 
-  // Accent for host/guest distinction
-  static const accent = Color(0xFF6C63FF);
-  static const hostAccent = Color(0xFFC77DFF);
-  static const guestAccent = Color(0xFF00C9A7);
+  static const accent = secondary;
+  static const hostAccent = secondary;
+  static const guestAccent = tertiaryContainer;
 }

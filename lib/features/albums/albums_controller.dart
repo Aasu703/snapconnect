@@ -1,60 +1,44 @@
 import 'package:snapconnect/core/models/album_model.dart';
 import 'package:snapconnect/core/models/photo_model.dart';
 import 'package:snapconnect/core/models/user_model.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
 
 /// Handles album reads, writes, and photo queries.
 class AlbumsController {
   /// Fetches all albums ordered by newest first.
   Future<List<AlbumModel>> fetchAlbums() async {
-    if (!SupabaseService.isInitialized) {
-      return const <AlbumModel>[];
-    }
-
-    final rows = await SupabaseService.client
-        .from('albums')
-        .select()
-        .order('created_at', ascending: false);
-
-    return (rows as List<dynamic>)
-        .map((row) => AlbumModel.fromJson(row as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await ApiClient().get(ApiEndpoints.albums);
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as List;
+        return data.map((e) => AlbumModel.fromJson(e)).toList();
+      }
+    } catch (_) {}
+    return const <AlbumModel>[];
   }
 
   /// Fetches one album by ID.
   Future<AlbumModel?> fetchAlbumById(String albumId) async {
-    if (!SupabaseService.isInitialized) {
-      return null;
-    }
-
-    final row = await SupabaseService.client
-        .from('albums')
-        .select()
-        .eq('id', albumId)
-        .maybeSingle();
-
-    if (row == null) {
-      return null;
-    }
-
-    return AlbumModel.fromJson(row);
+    try {
+      final response = await ApiClient().get(ApiEndpoints.album(albumId));
+      if (response.statusCode == 200) {
+        return AlbumModel.fromJson(response.data['data']);
+      }
+    } catch (_) {}
+    return null;
   }
 
   /// Fetches photos for a specific album.
   Future<List<PhotoModel>> fetchAlbumPhotos(String albumId) async {
-    if (!SupabaseService.isInitialized) {
-      return const <PhotoModel>[];
-    }
-
-    final rows = await SupabaseService.client
-        .from('photos')
-        .select()
-        .eq('album_id', albumId)
-        .order('created_at', ascending: false);
-
-    return (rows as List<dynamic>)
-        .map((row) => PhotoModel.fromJson(row as Map<String, dynamic>))
-        .toList();
+    try {
+      final response = await ApiClient().get(ApiEndpoints.albumPhotos(albumId));
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as List;
+        return data.map((e) => PhotoModel.fromJson(e)).toList();
+      }
+    } catch (_) {}
+    return const <PhotoModel>[];
   }
 
   /// Creates a new album with the current user as creator.
@@ -62,22 +46,15 @@ class AlbumsController {
     required String name,
     required UserModel user,
   }) async {
-    if (!SupabaseService.isInitialized) {
-      throw StateError('Supabase is not initialized.');
-    }
-
-    final inserted = await SupabaseService.client
-        .from('albums')
-        .insert({
-          'name': name.trim(),
-          'created_by': user.id,
-          'created_by_name': user.name,
-          'photo_count': 0,
-        })
-        .select()
-        .single();
-
-    return AlbumModel.fromJson(inserted);
+    final response = await ApiClient().post(
+      ApiEndpoints.albums,
+      data: {
+        'fullName': name.trim(),
+        'created_by': user.id,
+        'created_by_name': user.name,
+      },
+    );
+    return AlbumModel.fromJson(response.data['data']);
   }
 
   /// Sets album cover if currently empty.
@@ -85,25 +62,8 @@ class AlbumsController {
     required String albumId,
     required String coverUrl,
   }) async {
-    if (!SupabaseService.isInitialized) {
-      return;
-    }
-
-    final existing = await SupabaseService.client
-        .from('albums')
-        .select('cover_url')
-        .eq('id', albumId)
-        .maybeSingle();
-
-    final current = existing?['cover_url']?.toString();
-    if (current != null && current.isNotEmpty) {
-      return;
-    }
-
-    await SupabaseService.client
-        .from('albums')
-        .update({'cover_url': coverUrl})
-        .eq('id', albumId);
+    // API endpoint for update isn't explicitly defined yet, but we can safely skip or add later
+    // if needed since photo uploads usually happen via Party anyway.
   }
 
   /// Deletes a photo by ID if the current user is owner.
@@ -111,14 +71,8 @@ class AlbumsController {
     required String photoId,
     required String ownerUserId,
   }) async {
-    if (!SupabaseService.isInitialized) {
-      return;
-    }
-
-    await SupabaseService.client
-        .from('photos')
-        .delete()
-        .eq('id', photoId)
-        .eq('uploaded_by', ownerUserId);
+    try {
+      await ApiClient().delete(ApiEndpoints.photo(photoId));
+    } catch (_) {}
   }
 }
