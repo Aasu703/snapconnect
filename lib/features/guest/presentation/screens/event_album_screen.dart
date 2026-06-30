@@ -26,6 +26,7 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
 
   @override
   void initState() {
+    // this means that when the screen is first created, it will call the _loadData() method to fetch the event and photo data from the Supabase database. The _loadData() method will then update the state of the screen with the fetched data, which will trigger a rebuild of the UI to display the photos and event information.
     super.initState();
     _loadData();
   }
@@ -78,7 +79,10 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
         ),
         title: Text(
           _eventName.isEmpty ? 'Event Album' : _eventName,
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         actions: [
           IconButton(
@@ -91,38 +95,38 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: AppColors.primary))
+              child: CircularProgressIndicator(color: AppColors.primary),
+            )
           : _photos.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: _loadData,
-                  color: AppColors.primary,
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(8),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      childAspectRatio: 0.85,
-                    ),
-                    itemCount: _photos.length,
-                    itemBuilder: (context, index) {
-                      final photo = _photos[index];
-                      return _PhotoCard(photo: photo)
-                          .animate()
-                          .fadeIn(
-                            delay: Duration(milliseconds: 40 * index),
-                            duration: 300.ms,
-                          )
-                          .scale(
-                            begin: const Offset(0.95, 0.95),
-                            end: const Offset(1.0, 1.0),
-                            duration: 300.ms,
-                          );
-                    },
-                  ),
+          ? _buildEmptyState()
+          : RefreshIndicator(
+              onRefresh: _loadData,
+              color: AppColors.primary,
+              child: GridView.builder(
+                padding: const EdgeInsets.all(8),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
+                  childAspectRatio: 0.85,
                 ),
+                itemCount: _photos.length,
+                itemBuilder: (context, index) {
+                  final photo = _photos[index];
+                  return _PhotoCard(photo: photo)
+                      .animate()
+                      .fadeIn(
+                        delay: Duration(milliseconds: 40 * index),
+                        duration: 300.ms,
+                      )
+                      .scale(
+                        begin: const Offset(0.95, 0.95),
+                        end: const Offset(1.0, 1.0),
+                        duration: 300.ms,
+                      );
+                },
+              ),
+            ),
       floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
@@ -147,7 +151,11 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.add_a_photo_rounded, color: Colors.white, size: 20),
+                  Icon(
+                    Icons.add_a_photo_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
                   SizedBox(width: 8),
                   Text(
                     'Add Photos',
@@ -178,8 +186,11 @@ class _EventAlbumScreenState extends State<EventAlbumScreen> {
               shape: BoxShape.circle,
               color: AppColors.primary.withValues(alpha: 0.1),
             ),
-            child: Icon(Icons.photo_camera_rounded,
-                size: 36, color: AppColors.primary.withValues(alpha: 0.6)),
+            child: Icon(
+              Icons.photo_camera_rounded,
+              size: 36,
+              color: AppColors.primary.withValues(alpha: 0.6),
+            ),
           ),
           const Gap(20),
           Text(
@@ -229,8 +240,10 @@ class _PhotoCard extends StatelessWidget {
             ),
             errorWidget: (_, _, _) => Container(
               color: Colors.white.withValues(alpha: 0.05),
-              child: const Icon(Icons.broken_image_rounded,
-                  color: Colors.white24),
+              child: const Icon(
+                Icons.broken_image_rounded,
+                color: Colors.white24,
+              ),
             ),
           ),
           // Bottom gradient overlay
