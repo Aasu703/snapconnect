@@ -58,20 +58,24 @@ dependencies:
   # ZIP download
   archive: ^3.4.10
 
-  # Date formatting
+  # Date formatting & Localization
   timeago: ^3.6.1
-  intl: ^0.19.0
+  intl: ^0.20.2 # Updated to fix the version solving conflict
+  easy_localization: ^3.0.3 # Added package
 
   # Utilities
   uuid: ^4.5.1
   universal_io: ^2.2.2
   share_plus: ^10.0.0
   package_info_plus: ^8.0.2
+  equatable: ^2.0.8
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_secure_storage: ^10.3.1
+
 flutter:
   uses-material-design: true
   assets:

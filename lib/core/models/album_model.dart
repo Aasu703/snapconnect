@@ -2,7 +2,7 @@
 class AlbumModel {
   const AlbumModel({
     required this.id,
-    required this.name,
+    required this.fullName,
     required this.createdAt,
     required this.photoCount,
     this.coverUrl,
@@ -11,7 +11,7 @@ class AlbumModel {
   });
 
   final String id;
-  final String name;
+  final String fullName;
   final String? coverUrl;
   final String? createdBy;
   final String? createdByName;
@@ -22,7 +22,7 @@ class AlbumModel {
   factory AlbumModel.fromJson(Map<String, dynamic> json) {
     return AlbumModel(
       id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ?? 'Untitled',
+      fullName: json['fullName']?.toString() ?? 'Untitled',
       coverUrl: json['cover_url']?.toString(),
       createdBy: json['created_by']?.toString(),
       createdByName: json['created_by_name']?.toString(),
@@ -35,7 +35,7 @@ class AlbumModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'fullName': fullName,
       'cover_url': coverUrl,
       'created_by': createdBy,
       'created_by_name': createdByName,
@@ -56,7 +56,7 @@ class AlbumModel {
   }) {
     return AlbumModel(
       id: id ?? this.id,
-      name: name ?? this.name,
+      fullName: fullName ?? this.fullName,
       coverUrl: coverUrl ?? this.coverUrl,
       createdBy: createdBy ?? this.createdBy,
       createdByName: createdByName ?? this.createdByName,

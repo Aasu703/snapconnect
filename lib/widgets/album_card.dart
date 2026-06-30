@@ -98,7 +98,7 @@ class AlbumCard extends StatelessWidget {
                         left: 10,
                         right: 10,
                         child: Text(
-                          album.name.isEmpty ? 'Untitled' : album.name,
+                          album.fullName.isEmpty ? 'Untitled' : album.fullName,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 color: Colors.white,
@@ -154,14 +154,14 @@ class AlbumCard extends StatelessWidget {
       const Color(0xFFFFC93C),
       const Color(0xFFC77DFF),
     ];
-    final name = album.name.trim();
-    final color = colors[name.length % colors.length];
+    final fullName = album.fullName.trim();
+    final color = colors[fullName.length % colors.length];
 
     return Container(
       color: color,
       child: Center(
         child: Text(
-          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 48,

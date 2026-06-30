@@ -178,7 +178,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
         return albums.take(30).toList();
       case _AlbumFilter.parties:
         return albums.where((album) {
-          final name = album.name.toLowerCase();
+          final name = album.fullName.toLowerCase();
           final creator = album.createdByName?.toLowerCase() ?? '';
           return name.contains('party') || creator.contains('party');
         }).toList();
