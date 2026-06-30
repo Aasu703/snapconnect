@@ -34,4 +34,15 @@ final class AppColors {
     Color(0xFFFB5607),
     Color(0xFF3A86FF),
   ];
+
+  // Gradient pairs for event branding
+  static const gradientPrimary = [Color(0xFF4D96FF), Color(0xFF6C63FF)];
+  static const gradientHost = [Color(0xFFC77DFF), Color(0xFFFF6FD8)];
+  static const gradientGuest = [Color(0xFF6BCB77), Color(0xFF00C9A7)];
+  static const gradientDark = [Color(0xFF1A1A2E), Color(0xFF16213E)];
+
+  // Accent for host/guest distinction
+  static const accent = Color(0xFF6C63FF);
+  static const hostAccent = Color(0xFFC77DFF);
+  static const guestAccent = Color(0xFF00C9A7);
 }

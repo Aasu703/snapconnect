@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gap/gap.dart';
 import 'package:snapconnect/core/models/user_model.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/providers/controllers_provider.dart';
+import 'package:snapconnect/core/providers/session_provider.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 
 /// Compact identity form shown before protected actions.

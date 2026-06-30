@@ -59,26 +59,34 @@ class AppNavbar extends StatelessWidget {
                     onTap: onTap,
                   ),
                   _NavItem(
+                    icon: Icons.event_outlined,
+                    activeIcon: Icons.event,
+                    label: 'Events',
+                    index: 1,
+                    currentIndex: currentIndex,
+                    onTap: onTap,
+                  ),
+                  _NavItem(
                     icon: Icons.celebration_outlined,
                     activeIcon: Icons.celebration,
                     label: 'Parties',
-                    index: 1,
+                    index: 2,
                     currentIndex: currentIndex,
                     onTap: onTap,
                   ),
                   Expanded(
                     child: Center(
                       child: InkWell(
-                        onTap: () => onTap(2),
+                        onTap: () => onTap(3),
                         borderRadius: BorderRadius.circular(14),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           curve: Curves.easeOut,
-                          width: 58,
-                          height: 48,
+                          width: 48,
+                          height: 42,
                           transform: Matrix4.translationValues(
                             0,
-                            currentIndex == 2 ? -2 : 0,
+                            currentIndex == 3 ? -2 : 0,
                             0,
                           ),
                           decoration: BoxDecoration(
@@ -99,7 +107,7 @@ class AppNavbar extends StatelessWidget {
                           child: const Icon(
                             Icons.add_a_photo_rounded,
                             color: Colors.white,
-                            size: 22,
+                            size: 20,
                           ),
                         ),
                       ),
@@ -109,7 +117,7 @@ class AppNavbar extends StatelessWidget {
                     icon: Icons.person_outline_rounded,
                     activeIcon: Icons.person_rounded,
                     label: 'Profile',
-                    index: 3,
+                    index: 4,
                     currentIndex: currentIndex,
                     onTap: onTap,
                   ),

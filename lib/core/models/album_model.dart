@@ -47,7 +47,7 @@ class AlbumModel {
   /// Creates a copy with selective field updates.
   AlbumModel copyWith({
     String? id,
-    String? name,
+    String? fullName,
     String? coverUrl,
     String? createdBy,
     String? createdByName,
