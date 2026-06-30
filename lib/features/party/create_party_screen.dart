@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/providers/controllers_provider.dart';
-import 'package:snapconnect/core/providers/party_provider.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/party_bloc.dart';
+import 'package:snapconnect/features/party/party_controller.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
 /// Form screen used to create a new party event.
-class CreatePartyScreen extends ConsumerStatefulWidget {
+class CreatePartyScreen extends StatefulWidget {
   const CreatePartyScreen({super.key});
 
   @override
-  ConsumerState<CreatePartyScreen> createState() => _CreatePartyScreenState();
+  State<CreatePartyScreen> createState() => _CreatePartyScreenState();
 }
 
-class _CreatePartyScreenState extends ConsumerState<CreatePartyScreen> {
+class _CreatePartyScreenState extends State<CreatePartyScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -40,7 +41,7 @@ class _CreatePartyScreenState extends ConsumerState<CreatePartyScreen> {
 
   /// Enforces identity for party host actions.
   Future<void> _ensureIdentity() async {
-    if (ref.read(sessionProvider) != null) {
+    if (context.read<SessionCubit>().state != null) {
       return;
     }
 
@@ -50,7 +51,7 @@ class _CreatePartyScreenState extends ConsumerState<CreatePartyScreen> {
       subtitle: 'Set your identity to create and host a party.',
     );
 
-    if (ref.read(sessionProvider) == null && mounted) {
+    if (context.read<SessionCubit>().state == null && mounted) {
       context.go('/party');
     }
   }
@@ -61,7 +62,7 @@ class _CreatePartyScreenState extends ConsumerState<CreatePartyScreen> {
       return;
     }
 
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user == null) {
       await _ensureIdentity();
       return;
@@ -70,16 +71,17 @@ class _CreatePartyScreenState extends ConsumerState<CreatePartyScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final party = await ref
-          .read(partyControllerProvider)
+      final party = await sl<PartyController>()
           .createParty(
             name: _nameController.text,
             description: _descriptionController.text,
             host: user,
           );
 
-      ref.invalidate(partiesProvider);
-      ref.invalidate(myPartiesProvider);
+      if (context.mounted) {
+        context.read<PartyBloc>().add(FetchParties());
+        context.read<PartyBloc>().add(FetchMyParties(user));
+      }
       if (!mounted) {
         return;
       }

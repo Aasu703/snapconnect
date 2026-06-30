@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/models/user_model.dart';
 import 'package:snapconnect/features/events/data/repositories/event_repository_impl.dart';
 import 'package:snapconnect/features/events/domain/entities/event_entity.dart';
 
 /// The landing screen a guest sees after scanning an event QR code.
 /// Displays event info and allows joining with a name.
-class GuestLandingScreen extends ConsumerStatefulWidget {
+class GuestLandingScreen extends StatefulWidget {
   const GuestLandingScreen({super.key, required this.joinCode});
   final String joinCode;
 
   @override
-  ConsumerState<GuestLandingScreen> createState() => _GuestLandingScreenState();
+  State<GuestLandingScreen> createState() => _GuestLandingScreenState();
 }
 
-class _GuestLandingScreenState extends ConsumerState<GuestLandingScreen> {
+class _GuestLandingScreenState extends State<GuestLandingScreen> {
   final _nameController = TextEditingController();
   EventEntity? _event;
   bool _isLoading = true;
@@ -53,7 +54,7 @@ class _GuestLandingScreenState extends ConsumerState<GuestLandingScreen> {
   }
 
   Future<void> _joinEvent() async {
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     final guestName = user?.name ?? _nameController.text.trim();
     if (guestName.isEmpty) return;
 
@@ -75,11 +76,12 @@ class _GuestLandingScreenState extends ConsumerState<GuestLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(sessionProvider);
-    final hasSession = user != null;
+    return BlocBuilder<SessionCubit, UserModel?>(
+      builder: (context, user) {
+        final hasSession = user != null;
 
-    return Scaffold(
-      body: Container(
+        return Scaffold(
+          body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
@@ -311,9 +313,11 @@ class _GuestLandingScreenState extends ConsumerState<GuestLandingScreen> {
                     ],
                   ),
                 ),
-        ),
-      ),
-    );
+              ),
+            ),
+          );
+        },
+      );
   }
 
   Widget _buildNotFound() {

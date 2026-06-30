@@ -1,7 +1,9 @@
 import 'dart:async';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:snapconnect/core/models/reaction_model.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/models/user_model.dart';
+import 'package:snapconnect/core/logger/app_logger.dart';
+import 'package:snapconnect/core/di/injection_container.dart';
 
 // ── State ──────────────────────────────────────────────────────────────────
 
@@ -39,17 +41,16 @@ class ReactionState {
 
 // ── Notifier ───────────────────────────────────────────────────────────────
 
-class ReactionsNotifier extends StateNotifier<ReactionState> {
-  ReactionsNotifier({required this.photoId, required this.ref})
-    : super(const ReactionState()) {
-    unawaited(load());
+class ReactionsCubit extends Cubit<ReactionState> {
+  ReactionsCubit({required this.photoId}) : super(const ReactionState()) {
+    sl<AppLogger>().debug('ReactionsCubit initialized for photo $photoId');
   }
 
   final String photoId;
-  final Ref ref;
 
-  Future<void> load() async {
-    state = state.copyWith(isLoading: true);
+  Future<void> load(UserModel? user) async {
+    emit(state.copyWith(isLoading: true));
+    sl<AppLogger>().info('Loading reactions for photo $photoId');
 
     // Backend doesn't have reactions endpoint yet. We can mock it for now.
     final List<ReactionModel> reactions = [];
@@ -57,7 +58,6 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
     final counts = <String, int>{};
     final namesByEmoji = <String, List<String>>{};
     String? current;
-    final user = ref.read(sessionProvider);
 
     for (final reaction in reactions) {
       counts[reaction.emoji] = (counts[reaction.emoji] ?? 0) + 1;
@@ -69,7 +69,7 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
       }
     }
 
-    state = ReactionState(
+    emit(ReactionState(
       counts: counts,
       currentEmoji: current,
       tooltipByEmoji: {
@@ -77,12 +77,17 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
           entry.key: _buildTooltip(entry.value),
       },
       isLoading: false,
-    );
+    ));
+    sl<AppLogger>().good('Reactions loaded for photo $photoId');
   }
 
-  Future<void> toggle(String emoji) async {
-    final user = ref.read(sessionProvider);
-    if (user == null) return;
+  Future<void> toggle(String emoji, UserModel? user) async {
+    if (user == null) {
+      sl<AppLogger>().warning('Cannot toggle reaction, user is null');
+      return;
+    }
+
+    sl<AppLogger>().info('Toggling reaction $emoji for photo $photoId');
 
     final previous = state;
     final current = state.currentEmoji;
@@ -91,7 +96,7 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
     if (current == emoji) {
       final count = (nextCounts[emoji] ?? 1) - 1;
       count <= 0 ? nextCounts.remove(emoji) : nextCounts[emoji] = count;
-      state = state.copyWith(counts: nextCounts, currentEmoji: null);
+      emit(state.copyWith(counts: nextCounts, currentEmoji: null));
     } else {
       if (current != null) {
         final oldCount = (nextCounts[current] ?? 1) - 1;
@@ -100,14 +105,15 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
             : nextCounts[current] = oldCount;
       }
       nextCounts[emoji] = (nextCounts[emoji] ?? 0) + 1;
-      state = state.copyWith(counts: nextCounts, currentEmoji: emoji);
+      emit(state.copyWith(counts: nextCounts, currentEmoji: emoji));
     }
 
     try {
       // Backend missing reactions toggle API, mock it for now.
-      await load();
-    } catch (_) {
-      state = previous;
+      await load(user);
+    } catch (e) {
+      sl<AppLogger>().error('Error toggling reaction: $e');
+      emit(previous);
     }
   }
 
@@ -118,10 +124,3 @@ class ReactionsNotifier extends StateNotifier<ReactionState> {
     return '${names[0]}, ${names[1]} and ${names.length - 2} others';
   }
 }
-
-// ── Provider ───────────────────────────────────────────────────────────────
-
-final reactionsProvider =
-    StateNotifierProvider.family<ReactionsNotifier, ReactionState, String>(
-      (ref, photoId) => ReactionsNotifier(photoId: photoId, ref: ref),
-    );

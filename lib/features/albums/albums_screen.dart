@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/models/album_model.dart';
-import 'package:snapconnect/core/providers/albums_provider.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/albums_bloc.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/widgets/album_card.dart';
 import 'package:snapconnect/widgets/avatar_widget.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
@@ -15,24 +15,27 @@ import 'package:snapconnect/widgets/loading_skeleton.dart';
 enum _AlbumFilter { all, recent, parties, mine }
 
 /// Home screen that displays albums in a Pinterest-style masonry feed.
-class AlbumsScreen extends ConsumerStatefulWidget {
+class AlbumsScreen extends StatefulWidget {
   const AlbumsScreen({super.key});
 
   @override
-  ConsumerState<AlbumsScreen> createState() => _AlbumsScreenState();
+  State<AlbumsScreen> createState() => _AlbumsScreenState();
 }
 
-class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
+class _AlbumsScreenState extends State<AlbumsScreen> {
   _AlbumFilter _selectedFilter = _AlbumFilter.all;
 
   @override
   void initState() {
     super.initState();
     debugPrint('AlbumsScreen mounted');
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AlbumsBloc>().add(FetchAlbums());
+    });
   }
 
   Future<void> _createAlbum() async {
-    if (ref.read(sessionProvider) == null) {
+    if (context.read<SessionCubit>().state == null) {
       await IdentityBottomSheet.show(
         context,
         title: 'Create your identity',
@@ -40,7 +43,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
       );
     }
 
-    if (!mounted || ref.read(sessionProvider) == null) {
+    if (!mounted || context.read<SessionCubit>().state == null) {
       return;
     }
 
@@ -48,59 +51,57 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
   }
 
   Future<void> _refreshAlbums() async {
-    ref.invalidate(albumsProvider);
-    try {
-      await ref.read(albumsProvider.future);
-    } catch (e) {
-      debugPrint('Albums refresh error: $e');
-    }
+    context.read<AlbumsBloc>().add(FetchAlbums());
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(sessionProvider);
-    final albumsAsync = ref.watch(albumsProvider);
+    final user = context.watch<SessionCubit>().state;
+    final albumsState = context.watch<AlbumsBloc>().state;
     final disableAnimations = MediaQuery.of(context).disableAnimations;
 
-    Widget bodyForState = albumsAsync.when(
-      loading: () => _buildScrollLayout(
-        userName: user?.name,
-        contentSlivers: [
-          const SliverToBoxAdapter(
-            child: AlbumGridSkeleton(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-            ),
-          ),
-        ],
-      ),
-      error: (error, stack) {
-        debugPrint('Albums error: $error');
-        debugPrint('Albums stack: $stack');
-        return _buildScrollLayout(
-          userName: user?.name,
-          contentSlivers: [
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: EmptyState(
-                icon: Icons.error_outline,
-                title: 'Could not load albums',
-                subtitle: error.toString(),
-                actionLabel: 'Try again',
-                onAction: () => ref.invalidate(albumsProvider),
+    Widget bodyForState = Builder(
+      builder: (context) {
+        if (albumsState.isLoadingAlbums && albumsState.albums == null) {
+          return _buildScrollLayout(
+            userName: user?.name,
+            contentSlivers: [
+              const SliverToBoxAdapter(
+                child: AlbumGridSkeleton(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                ),
               ),
-            ),
-          ],
-        );
-      },
-      data: (albums) {
+            ],
+          );
+        }
+
+        if (albumsState.albumsError != null && albumsState.albums == null) {
+          return _buildScrollLayout(
+            userName: user?.name,
+            contentSlivers: [
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: EmptyState(
+                  icon: Icons.error_outline,
+                  title: 'Could not load albums',
+                  subtitle: albumsState.albumsError.toString(),
+                  actionLabel: 'Try again',
+                  onAction: _refreshAlbums,
+                ),
+              ),
+            ],
+          );
+        }
+
+        final albums = albumsState.albums ?? [];
         final filteredAlbums = _applyFilter(
           albums: albums,
           selectedFilter: _selectedFilter,
           currentUserId: user?.id,
         );
 
-        if (filteredAlbums.isEmpty) {
+        if (filteredAlbums.isEmpty && !albumsState.isLoadingAlbums) {
           return _buildScrollLayout(
             userName: user?.name,
             contentSlivers: [
@@ -144,7 +145,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
             const SliverToBoxAdapter(child: SizedBox(height: 96)),
           ],
         );
-      },
+      }
     );
 
     return Scaffold(

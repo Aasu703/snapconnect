@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/features/events/data/repositories/event_repository_impl.dart';
 import 'package:snapconnect/features/events/domain/entities/event_entity.dart';
 
 /// Host dashboard displaying all events created by the current user
 /// with attendee metrics, photo counts, and quick actions.
-class HostDashboardScreen extends ConsumerStatefulWidget {
+class HostDashboardScreen extends StatefulWidget {
   const HostDashboardScreen({super.key});
 
   @override
-  ConsumerState<HostDashboardScreen> createState() =>
+  State<HostDashboardScreen> createState() =>
       _HostDashboardScreenState();
 }
 
-class _HostDashboardScreenState extends ConsumerState<HostDashboardScreen> {
+class _HostDashboardScreenState extends State<HostDashboardScreen> {
   final _repo = EventRepositoryImpl();
   List<EventEntity> _events = [];
   Map<String, Map<String, int>> _stats = {};
@@ -32,7 +32,7 @@ class _HostDashboardScreenState extends ConsumerState<HostDashboardScreen> {
   }
 
   Future<void> _loadEvents() async {
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user == null) {
       setState(() => _isLoading = false);
       return;

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/constants/app_text_styles.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
-import 'package:snapconnect/core/providers/upload_provider.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/blocs/upload_bloc.dart';
+import 'package:snapconnect/features/photos/photos_controller.dart';
 import 'package:snapconnect/features/albums/album_detail_screen.dart';
 import 'package:snapconnect/features/albums/albums_screen.dart';
 import 'package:snapconnect/features/albums/create_album_screen.dart';
@@ -37,28 +37,23 @@ import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 /// Root app widget containing router and global themes.
-class SnapConnectApp extends ConsumerWidget {
+class SnapConnectApp extends StatelessWidget {
   const SnapConnectApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
-
-    return BlocProvider(
-      create: (_) => sl<AuthCubit>()..checkAuth(),
-      child: Builder(
-        builder: (context) {
-          final router = _buildRouter(context);
-          return MaterialApp.router(
-            title: 'SnapConnect',
-            debugShowCheckedModeBanner: false,
-            themeMode: themeMode,
-            theme: _lightTheme(),
-            darkTheme: _darkTheme(),
-            routerConfig: router,
-          );
-        },
-      ),
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeModeCubit, ThemeMode>(
+      builder: (context, themeMode) {
+        final router = _buildRouter(context);
+        return MaterialApp.router(
+          title: 'SnapConnect',
+          debugShowCheckedModeBanner: false,
+          themeMode: themeMode,
+          theme: _lightTheme(),
+          darkTheme: _darkTheme(),
+          routerConfig: router,
+        );
+      },
     );
   }
 
@@ -339,7 +334,7 @@ CustomTransitionPage<void> _buildFadeTransitionPage({
   );
 }
 
-class _ShellScaffold extends ConsumerWidget {
+class _ShellScaffold extends StatelessWidget {
   const _ShellScaffold({required this.location, required this.child});
 
   final String location;
@@ -376,12 +371,12 @@ class _ShellScaffold extends ConsumerWidget {
     }
   }
 
-  Future<void> _openUpload(BuildContext context, WidgetRef ref) async {
+  Future<void> _openUpload(BuildContext context) async {
     if (location.startsWith('/upload')) {
       return;
     }
 
-    if (ref.read(sessionProvider) == null) {
+    if (context.read<SessionCubit>().state == null) {
       await IdentityBottomSheet.show(
         context,
         title: 'Before uploading',
@@ -389,7 +384,7 @@ class _ShellScaffold extends ConsumerWidget {
       );
     }
 
-    if (!context.mounted || ref.read(sessionProvider) == null) {
+    if (!context.mounted || context.read<SessionCubit>().state == null) {
       return;
     }
 
@@ -397,33 +392,37 @@ class _ShellScaffold extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final index = _currentIndex(location);
-    final uploadState = ref.watch(uploadProvider);
-    final progress = uploadState.totalCount == 0
-        ? 0.0
-        : uploadState.uploadedCount / uploadState.totalCount;
+    
+    return BlocBuilder<UploadBloc, UploadState>(
+      builder: (context, uploadState) {
+        final progress = uploadState.totalCount == 0
+            ? 0.0
+            : uploadState.uploadedCount / uploadState.totalCount;
 
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: AppNavbar(
-        currentIndex: index,
-        uploadInProgress: uploadState.isUploading,
-        uploadProgress: progress,
-        onTap: (selectedIndex) {
-          if (selectedIndex == 3) {
-            _openUpload(context, ref);
-            return;
-          }
+        return Scaffold(
+          body: child,
+          bottomNavigationBar: AppNavbar(
+            currentIndex: index,
+            uploadInProgress: uploadState.isUploading,
+            uploadProgress: progress,
+            onTap: (selectedIndex) {
+              if (selectedIndex == 3) {
+                _openUpload(context);
+                return;
+              }
 
-          final route = _routeForIndex(selectedIndex);
-          if (location == route) {
-            return;
-          }
+              final route = _routeForIndex(selectedIndex);
+              if (location == route) {
+                return;
+              }
 
-          context.go(route);
-        },
-      ),
+              context.go(route);
+            },
+          ),
+        );
+      },
     );
   }
 }

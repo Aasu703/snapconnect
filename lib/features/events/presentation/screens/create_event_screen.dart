@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/features/events/data/repositories/event_repository_impl.dart';
 import 'package:snapconnect/features/events/domain/entities/event_entity.dart';
 import 'package:uuid/uuid.dart';
 
 /// Create Event screen with premium styling, date/time pickers,
 /// and Cloudinary cover image upload support.
-class CreateEventScreen extends ConsumerStatefulWidget {
+class CreateEventScreen extends StatefulWidget {
   const CreateEventScreen({super.key});
 
   @override
-  ConsumerState<CreateEventScreen> createState() => _CreateEventScreenState();
+  State<CreateEventScreen> createState() => _CreateEventScreenState();
 }
 
-class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
+class _CreateEventScreenState extends State<CreateEventScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -79,7 +79,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate() || _isSubmitting) return;
 
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user == null) {
       ScaffoldMessenger.of(
         context,
