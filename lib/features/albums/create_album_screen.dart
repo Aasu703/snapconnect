@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/providers/albums_provider.dart';
-import 'package:snapconnect/core/providers/controllers_provider.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/albums_bloc.dart';
+import 'package:snapconnect/features/albums/albums_controller.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
 /// Simple form screen for creating a new album.
-class CreateAlbumScreen extends ConsumerStatefulWidget {
+class CreateAlbumScreen extends StatefulWidget {
   const CreateAlbumScreen({super.key});
 
   @override
-  ConsumerState<CreateAlbumScreen> createState() => _CreateAlbumScreenState();
+  State<CreateAlbumScreen> createState() => _CreateAlbumScreenState();
 }
 
-class _CreateAlbumScreenState extends ConsumerState<CreateAlbumScreen> {
+class _CreateAlbumScreenState extends State<CreateAlbumScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
 
@@ -34,7 +35,7 @@ class _CreateAlbumScreenState extends ConsumerState<CreateAlbumScreen> {
       return;
     }
 
-    if (ref.read(sessionProvider) == null) {
+    if (context.read<SessionCubit>().state == null) {
       await IdentityBottomSheet.show(
         context,
         title: 'Create your identity',
@@ -42,7 +43,7 @@ class _CreateAlbumScreenState extends ConsumerState<CreateAlbumScreen> {
       );
     }
 
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user == null) {
       return;
     }
@@ -50,11 +51,12 @@ class _CreateAlbumScreenState extends ConsumerState<CreateAlbumScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final album = await ref
-          .read(albumsControllerProvider)
+      final album = await sl<AlbumsController>()
           .createAlbum(name: _nameController.text, user: user);
 
-      ref.invalidate(albumsProvider);
+      if (context.mounted) {
+        context.read<AlbumsBloc>().add(FetchAlbums());
+      }
       if (!mounted) {
         return;
       }

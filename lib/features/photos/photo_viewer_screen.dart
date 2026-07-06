@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:snapconnect/core/providers/albums_provider.dart';
+import 'package:snapconnect/core/blocs/albums_bloc.dart';
 import 'package:snapconnect/core/services/download_service.dart';
 import 'package:snapconnect/core/utils/date_formatter.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
@@ -11,7 +11,7 @@ import 'package:snapconnect/widgets/loading_skeleton.dart';
 import 'package:snapconnect/widgets/reaction_bar.dart';
 
 /// Full-screen photo viewer with swipe, zoom, and reactions.
-class PhotoViewerScreen extends ConsumerStatefulWidget {
+class PhotoViewerScreen extends StatefulWidget {
   const PhotoViewerScreen({
     super.key,
     required this.photoId,
@@ -22,10 +22,10 @@ class PhotoViewerScreen extends ConsumerStatefulWidget {
   final String albumId;
 
   @override
-  ConsumerState<PhotoViewerScreen> createState() => _PhotoViewerScreenState();
+  State<PhotoViewerScreen> createState() => _PhotoViewerScreenState();
 }
 
-class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
+class _PhotoViewerScreenState extends State<PhotoViewerScreen> {
   PageController? _pageController;
   int _currentIndex = 0;
   bool _initialized = false;
@@ -54,7 +54,7 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final photosAsync = ref.watch(albumDetailProvider(widget.albumId));
+    final albumsState = context.watch<AlbumsBloc>().state;
     final disableAnimations = MediaQuery.of(context).disableAnimations;
 
     final dismissProgress = (_verticalDragOffset / 350).clamp(0.0, 1.0);
@@ -82,24 +82,30 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: photosAsync.when(
-          loading: () => const Center(
-            child: PhotoGridSkeleton(
-              itemCount: 4,
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.all(18),
-            ),
-          ),
-          error: (error, _) => EmptyState(
-            title: 'Could not open photo',
-            subtitle: error.toString(),
-            icon: Icons.error_outline,
-            actionLabel: 'Back',
-            onAction: () => context.pop(),
-          ),
-          data: (photos) {
-            if (photos.isEmpty) {
+        body: Builder(
+          builder: (context) {
+            if (albumsState.isLoadingAlbumPhotos && albumsState.albumPhotos == null) {
+              return const Center(
+                child: PhotoGridSkeleton(
+                  itemCount: 4,
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.all(18),
+                ),
+              );
+            }
+            if (albumsState.albumPhotosError != null && albumsState.albumPhotos == null) {
+              return EmptyState(
+                title: 'Could not open photo',
+                subtitle: albumsState.albumPhotosError.toString(),
+                icon: Icons.error_outline,
+                actionLabel: 'Back',
+                onAction: () => context.pop(),
+              );
+            }
+
+            final photos = albumsState.albumPhotos ?? [];
+            if (photos.isEmpty && !albumsState.isLoadingAlbumPhotos) {
               return EmptyState(
                 title: 'No photo found',
                 subtitle: 'This album has no photos to preview.',
@@ -109,8 +115,12 @@ class _PhotoViewerScreenState extends ConsumerState<PhotoViewerScreen> {
               );
             }
 
-            _initPageController(photos);
-            final photo = photos[_currentIndex];
+            if (photos.isNotEmpty) {
+              _initPageController(photos);
+            }
+
+            final photo = photos.isNotEmpty ? photos[_currentIndex] : null;
+            if (photo == null) return const SizedBox.shrink();
 
             return Stack(
               children: [

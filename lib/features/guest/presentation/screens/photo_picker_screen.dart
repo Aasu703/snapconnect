@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/api/api.client.dart';
 import 'package:snapconnect/core/api/api.endpoints.dart';
 import 'package:dio/dio.dart';
@@ -15,15 +15,15 @@ import 'package:flutter/foundation.dart';
 
 /// Streamlined photo picker for guests to select and upload
 /// photos to an event album.
-class PhotoPickerScreen extends ConsumerStatefulWidget {
+class PhotoPickerScreen extends StatefulWidget {
   const PhotoPickerScreen({super.key, required this.joinCode});
   final String joinCode;
 
   @override
-  ConsumerState<PhotoPickerScreen> createState() => _PhotoPickerScreenState();
+  State<PhotoPickerScreen> createState() => _PhotoPickerScreenState();
 }
 
-class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
+class _PhotoPickerScreenState extends State<PhotoPickerScreen> {
   final _picker = ImagePicker();
   final List<XFile> _selectedFiles = [];
   bool _isUploading = false;
@@ -73,7 +73,7 @@ class _PhotoPickerScreenState extends ConsumerState<PhotoPickerScreen> {
   Future<void> _upload() async {
     if (_selectedFiles.isEmpty || _isUploading || _eventId.isEmpty) return;
 
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     setState(() {
       _isUploading = true;
       _uploadedCount = 0;

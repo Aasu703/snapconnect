@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/session_service.dart';
+import '../../../../core/di/injection_container.dart';
+import '../../../../core/logger/app_logger.dart';
 import '../../domain/usecases/check_auth_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
@@ -61,11 +63,14 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final success = await _registerUseCase(data);
       if (success) {
+        sl<AppLogger>().good('User successfully registered: ${data['email'] ?? data['fullName'] ?? 'Unknown'}');
         emit(RegisterSuccess());
       } else {
+        sl<AppLogger>().warning('User registration failed for: ${data['email'] ?? 'Unknown'}');
         emit(AuthError('Registration failed'));
       }
     } catch (e) {
+      sl<AppLogger>().error('Error during registration: $e');
       emit(AuthError(e.toString()));
     }
   }

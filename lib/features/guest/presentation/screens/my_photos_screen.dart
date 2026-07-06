@@ -1,26 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/models/photo_model.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/api/api.client.dart';
 import 'package:snapconnect/core/api/api.endpoints.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 /// Personalized view showing photos contributed by the current guest.
-class MyPhotosScreen extends ConsumerStatefulWidget {
+class MyPhotosScreen extends StatefulWidget {
   const MyPhotosScreen({super.key, required this.joinCode});
   final String joinCode;
 
   @override
-  ConsumerState<MyPhotosScreen> createState() => _MyPhotosScreenState();
+  State<MyPhotosScreen> createState() => _MyPhotosScreenState();
 }
 
-class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
+class _MyPhotosScreenState extends State<MyPhotosScreen> {
   List<PhotoModel> _photos = [];
   bool _isLoading = true;
 
@@ -31,7 +31,7 @@ class _MyPhotosScreenState extends ConsumerState<MyPhotosScreen> {
   }
 
   Future<void> _loadMyPhotos() async {
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user == null) {
       setState(() => _isLoading = false);
       return;

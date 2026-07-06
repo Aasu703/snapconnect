@@ -2,30 +2,30 @@ import 'dart:typed_data';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:snapconnect/core/providers/albums_provider.dart';
-import 'package:snapconnect/core/providers/session_provider.dart';
-import 'package:snapconnect/core/providers/upload_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:snapconnect/core/blocs/albums_bloc.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/blocs/upload_bloc.dart';
 import 'package:snapconnect/features/photos/photos_controller.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 import 'package:snapconnect/widgets/loading_skeleton.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gap/gap.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:go_router/go_router.dart';
 
 /// Multi-photo upload screen with per-photo status and progress.
-class UploadScreen extends ConsumerStatefulWidget {
+class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key, this.initialAlbumId});
 
   final String? initialAlbumId;
 
   @override
-  ConsumerState<UploadScreen> createState() => _UploadScreenState();
+  State<UploadScreen> createState() => _UploadScreenState();
 }
 
-class _UploadScreenState extends ConsumerState<UploadScreen> {
+class _UploadScreenState extends State<UploadScreen> {
   final _titleController = TextEditingController();
   late final ConfettiController _confettiController;
 
@@ -40,6 +40,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      context.read<AlbumsBloc>().add(FetchAlbums());
       await _ensureIdentity();
     });
   }
@@ -53,7 +54,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
 
   /// Enforces identity before upload actions.
   Future<void> _ensureIdentity() async {
-    if (ref.read(sessionProvider) != null) {
+    if (context.read<SessionCubit>().state != null) {
       return;
     }
 
@@ -63,84 +64,90 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
       subtitle: 'Set your identity before uploading photos.',
     );
 
-    if (ref.read(sessionProvider) == null && mounted) {
+    if (!context.mounted) return;
+    if (context.read<SessionCubit>().state == null) {
       context.go('/');
     }
   }
 
   /// Starts sequential upload and updates UI with result.
   Future<void> _uploadAll() async {
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     final albumId = _selectedAlbumId;
 
     if (user == null || albumId == null) {
       return;
     }
 
-    await ref
-        .read(uploadProvider.notifier)
-        .uploadAll(albumId: albumId, user: user, title: _titleController.text);
+    context.read<UploadBloc>().add(UploadAll(
+      albumId: albumId, user: user, title: _titleController.text,
+    ));
 
-    final state = ref.read(uploadProvider);
-    final uploaded = state.items
-        .where((item) => item.status == UploadItemStatus.done)
-        .length;
-    final failed = state.items
-        .where((item) => item.status == UploadItemStatus.error)
-        .length;
-
-    if (uploaded > 0) {
-      _confettiController.play();
-      Fluttertoast.showToast(msg: 'Upload complete: $uploaded photos uploaded');
-      ref.invalidate(albumsProvider);
-      ref.invalidate(albumDetailProvider(albumId));
-      if (mounted) {
-        context.go('/album/$albumId');
-      }
-    }
-
-    if (failed > 0) {
-      Fluttertoast.showToast(
-        msg: '$failed photos failed. Tap retry on failed items.',
-      );
-    }
+    // Listen to bloc changes elsewhere, or wait for state using a listener.
+    // For simplicity, we just trigger it. The user will see progress on the UI.
+    // If we wanted to close upon success, we should use a BlocListener around the widget.
   }
 
   @override
   Widget build(BuildContext context) {
-    final albumsAsync = ref.watch(albumsProvider);
-    final uploadState = ref.watch(uploadProvider);
+    final albumsState = context.watch<AlbumsBloc>().state;
+    final uploadState = context.watch<UploadBloc>().state;
     final columns = MediaQuery.sizeOf(context).width >= 600 ? 3 : 2;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: const Text('Upload Photos'),
-        backgroundColor: Colors.white,
-        surfaceTintColor: Colors.transparent,
-      ),
-      body: Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          albumsAsync.when(
-            loading: () => const LoadingSkeleton(columns: 1),
-            error: (error, _) => EmptyState(
-              title: 'Could not load albums',
-              subtitle: error.toString(),
-              icon: Icons.error_outline,
-              actionLabel: 'Retry',
-              onAction: () => ref.invalidate(albumsProvider),
-            ),
-            data: (albums) {
-              if (albums.isEmpty) {
-                return EmptyState(
-                  title: 'Create an album first',
-                  subtitle: 'Uploads need a target album.',
-                  icon: Icons.photo_album_outlined,
-                  actionLabel: 'Create Album',
-                  onAction: () => context.push('/album/create'),
-                );
-              }
+    return BlocListener<UploadBloc, UploadState>(
+      listenWhen: (prev, current) => prev.isUploading && !current.isUploading,
+      listener: (context, state) {
+        final uploaded = state.items.where((item) => item.status == UploadItemStatus.done).length;
+        final failed = state.items.where((item) => item.status == UploadItemStatus.error).length;
+
+        if (uploaded > 0 && failed == 0) {
+          _confettiController.play();
+          Fluttertoast.showToast(msg: 'Upload complete: $uploaded photos uploaded');
+          context.read<AlbumsBloc>().add(FetchAlbums());
+          if (_selectedAlbumId != null) {
+            context.read<AlbumsBloc>().add(FetchAlbumPhotos(_selectedAlbumId!));
+            context.go('/album/$_selectedAlbumId');
+          }
+        } else if (failed > 0) {
+          Fluttertoast.showToast(msg: '$failed photos failed. Tap retry on failed items.');
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        appBar: AppBar(
+          title: const Text('Upload Photos'),
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+        ),
+        body: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Builder(
+              builder: (context) {
+                if (albumsState.isLoadingAlbums && albumsState.albums == null) {
+                  return const LoadingSkeleton(columns: 1);
+                }
+                if (albumsState.albumsError != null && albumsState.albums == null) {
+                  return EmptyState(
+                    title: 'Could not load albums',
+                    subtitle: albumsState.albumsError.toString(),
+                    icon: Icons.error_outline,
+                    actionLabel: 'Retry',
+                    onAction: () => context.read<AlbumsBloc>().add(FetchAlbums()),
+                  );
+                }
+
+                final albums = albumsState.albums ?? [];
+                
+                if (albums.isEmpty && !albumsState.isLoadingAlbums) {
+                  return EmptyState(
+                    title: 'Create an album first',
+                    subtitle: 'Uploads need a target album.',
+                    icon: Icons.photo_album_outlined,
+                    actionLabel: 'Create Album',
+                    onAction: () => context.push('/album/create'),
+                  );
+                }
 
               _selectedAlbumId ??= albums.first.id;
 
@@ -188,9 +195,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                         child: FilledButton.icon(
                           onPressed: uploadState.isUploading
                               ? null
-                              : () => ref
-                                    .read(uploadProvider.notifier)
-                                    .pickPhotos(),
+                              : () => context.read<UploadBloc>().add(UploadPickPhotos()),
                           icon: const Icon(Icons.photo_library_outlined),
                           label: const Text('Pick Photos'),
                         ),
@@ -200,9 +205,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                         child: OutlinedButton.icon(
                           onPressed: uploadState.isUploading
                               ? null
-                              : () => ref
-                                    .read(uploadProvider.notifier)
-                                    .capturePhoto(),
+                              : () => context.read<UploadBloc>().add(UploadCapturePhoto()),
                           icon: const Icon(Icons.camera_alt_outlined),
                           label: const Text('Take Photo'),
                         ),
@@ -250,24 +253,20 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
                           item: item,
                           onRemove: uploadState.isUploading
                               ? null
-                              : () => ref
-                                    .read(uploadProvider.notifier)
-                                    .removeAt(index),
+                              : () => context.read<UploadBloc>().add(UploadRemoveAt(index)),
                           onRetry:
                               item.status == UploadItemStatus.error &&
                                   !uploadState.isUploading
                               ? () {
-                                  final user = ref.read(sessionProvider);
+                                  final user = context.read<SessionCubit>().state;
                                   final albumId = _selectedAlbumId;
                                   if (user != null && albumId != null) {
-                                    ref
-                                        .read(uploadProvider.notifier)
-                                        .retryItem(
-                                          index: index,
-                                          albumId: albumId,
-                                          user: user,
-                                          title: _titleController.text,
-                                        );
+                                    context.read<UploadBloc>().add(UploadRetryItem(
+                                      index: index,
+                                      albumId: albumId,
+                                      user: user,
+                                      title: _titleController.text,
+                                    ));
                                   }
                                 }
                               : null,
@@ -301,6 +300,7 @@ class _UploadScreenState extends ConsumerState<UploadScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 }
