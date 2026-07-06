@@ -17,13 +17,13 @@ import 'package:talker_flutter/talker_flutter.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await _safeInitialize();
-    Bloc.observer = TalkerBlocObserver(
-      talker: sl<Talker>(),
-      settings: const TalkerBlocLoggerSettings(
-        printEventFullData: false,
-        printStateFullData: false,
-      ),
-    );
+  Bloc.observer = TalkerBlocObserver(
+    talker: sl<Talker>(),
+    settings: const TalkerBlocLoggerSettings(
+      printEventFullData: false,
+      printStateFullData: false,
+    ),
+  );
   runApp(
     MultiBlocProvider(
       providers: [
