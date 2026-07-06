@@ -339,21 +339,25 @@ class _UploadPreviewTile extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Stack(
-        fit: StackFit.expand,
         children: [
           FutureBuilder<Uint8List>(
             future: item.file.readAsBytes(),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
-                return Container(color: Colors.black12);
+                return const AspectRatio(
+                  aspectRatio: 1,
+                  child: ColoredBox(color: Colors.black12),
+                );
               }
               return Image.memory(snapshot.data!, fit: BoxFit.cover);
             },
           ),
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: borderColor, width: 3),
-              borderRadius: BorderRadius.circular(12),
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: borderColor, width: 3),
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
           Positioned(
