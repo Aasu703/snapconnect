@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/models/photo_model.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -46,18 +47,18 @@ class _PhotoCardState extends State<PhotoCard> {
           child: InkWell(
             onTap: widget.onTap,
             onLongPress: widget.onLongPress,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(12),
             onHighlightChanged: (pressed) {
               setState(() => _pressed = pressed);
             },
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(12),
               child: Container(
                 height: cardHeight,
                 decoration: BoxDecoration(
                   border: widget.highlightNew
-                      ? Border.all(color: const Color(0xFF6BCB77), width: 2)
-                      : null,
+                      ? Border.all(color: AppColors.success, width: 2)
+                      : Border.all(color: AppColors.outlineVariant, width: 1), // 1px inner border per Stitch design
                 ),
                 child: CachedNetworkImage(
                   imageUrl: widget.photo.url,

@@ -1,27 +1,30 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/blocs/party_bloc.dart';
+import 'package:snapconnect/features/party/party_controller.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
 /// Join screen that supports QR scanning and manual code entry.
-class JoinPartyScreen extends ConsumerStatefulWidget {
+class JoinPartyScreen extends StatefulWidget {
   const JoinPartyScreen({super.key, this.joinCode});
 
   final String? joinCode;
 
   @override
-  ConsumerState<JoinPartyScreen> createState() => _JoinPartyScreenState();
+  State<JoinPartyScreen> createState() => _JoinPartyScreenState();
 }
 
-class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
+class _JoinPartyScreenState extends State<JoinPartyScreen> {
   final _formKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
 
@@ -79,8 +82,7 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
     });
 
     try {
-      final party = await ref
-          .read(partyControllerProvider)
+      final party = await sl<PartyController>()
           .getPartyByJoinCode(_codeController.text.trim().toUpperCase());
 
       if (!mounted) {
@@ -108,7 +110,7 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
       return;
     }
 
-    if (ref.read(sessionProvider) == null) {
+    if (context.read<SessionCubit>().state == null) {
       await IdentityBottomSheet.show(
         context,
         title: 'Who is joining?',
@@ -116,7 +118,7 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
       );
     }
 
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user == null) {
       return;
     }
@@ -124,8 +126,7 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
     setState(() => _isJoining = true);
 
     try {
-      final detail = await ref
-          .read(partyControllerProvider)
+      final detail = await sl<PartyController>()
           .joinParty(joinCode: _party.joinCode, user: user);
 
       if (detail == null) {
@@ -134,10 +135,9 @@ class _JoinPartyScreenState extends ConsumerState<JoinPartyScreen> {
       }
 
       _confettiController.play();
-      ref.invalidate(partiesProvider);
-      ref.invalidate(myPartiesProvider);
-
-      if (mounted) {
+      if (context.mounted) {
+        context.read<PartyBloc>().add(FetchParties());
+        context.read<PartyBloc>().add(FetchMyParties(user));
         context.go('/party/${_party.joinCode}');
       }
     } catch (_) {

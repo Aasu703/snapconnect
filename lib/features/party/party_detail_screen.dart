@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/core/blocs/party_bloc.dart';
 import 'package:snapconnect/widgets/avatar_widget.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/live_badge.dart';
@@ -15,24 +15,29 @@ import 'package:snapconnect/widgets/photo_grid.dart';
 import 'package:snapconnect/widgets/reaction_bar.dart';
 
 /// Party details screen showing QR join flow and live photo feed.
-class PartyDetailScreen extends ConsumerStatefulWidget {
+class PartyDetailScreen extends StatefulWidget {
   const PartyDetailScreen({super.key, required this.joinCode});
 
   final String joinCode;
 
   @override
-  ConsumerState<PartyDetailScreen> createState() => _PartyDetailScreenState();
+  State<PartyDetailScreen> createState() => _PartyDetailScreenState();
 }
 
-class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
+class _PartyDetailScreenState extends State<PartyDetailScreen> {
   Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PartyBloc>().add(FetchPartyDetail(widget.joinCode));
+    });
 
     _refreshTimer = Timer.periodic(AppConstants.partyRefreshInterval, (_) {
-      ref.invalidate(partyDetailProvider(widget.joinCode));
+      if (mounted) {
+        context.read<PartyBloc>().add(FetchPartyDetail(widget.joinCode));
+      }
     });
   }
 
@@ -44,30 +49,42 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final detailAsync = ref.watch(partyDetailProvider(widget.joinCode));
+    final partyState = context.watch<PartyBloc>().state;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Party Details')),
       body: RefreshIndicator(
-        onRefresh: () async =>
-            ref.invalidate(partyDetailProvider(widget.joinCode)),
-        child: detailAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => EmptyState(
-            title: 'Could not load party',
-            subtitle: error.toString(),
-            icon: Icons.error_outline,
-            actionLabel: 'Retry',
-            onAction: () =>
-                ref.invalidate(partyDetailProvider(widget.joinCode)),
-          ),
-          data: (detail) {
-            if (detail == null) {
+        onRefresh: () async {
+          context.read<PartyBloc>().add(FetchPartyDetail(widget.joinCode));
+        },
+        child: Builder(
+          builder: (context) {
+            if (partyState.isLoadingPartyDetail && partyState.partyDetail == null) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (partyState.partyDetailError != null && partyState.partyDetail == null) {
+              return EmptyState(
+                title: 'Could not load party',
+                subtitle: partyState.partyDetailError.toString(),
+                icon: Icons.error_outline,
+                actionLabel: 'Retry',
+                onAction: () =>
+                    context.read<PartyBloc>().add(FetchPartyDetail(widget.joinCode)),
+              );
+            }
+
+            final detail = partyState.partyDetail;
+            if (detail == null && !partyState.isLoadingPartyDetail) {
               return const EmptyState(
                 title: 'Party not found',
                 subtitle: 'This join code is invalid or the party is inactive.',
                 icon: Icons.group_off_outlined,
               );
+            }
+
+            if (detail == null) {
+              return const SizedBox.shrink();
             }
 
             final party = detail.party;
@@ -78,7 +95,7 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
               padding: const EdgeInsets.all(16),
               children: [
                 Text(
-                  party.name,
+                  party.fullName,
                   style: Theme.of(context).textTheme.headlineMedium,
                 ),
                 const SizedBox(height: 8),
@@ -173,10 +190,11 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
           },
         ),
       ),
-      floatingActionButton: detailAsync.maybeWhen(
-        data: (detail) {
+      floatingActionButton: Builder(
+        builder: (context) {
+          final detail = context.watch<PartyBloc>().state.partyDetail;
           if (detail == null) {
-            return null;
+            return const SizedBox.shrink();
           }
           return FloatingActionButton(
             onPressed: () =>
@@ -184,7 +202,6 @@ class _PartyDetailScreenState extends ConsumerState<PartyDetailScreen> {
             child: const Icon(Icons.camera_alt_rounded),
           );
         },
-        orElse: () => null,
       ),
     );
   }

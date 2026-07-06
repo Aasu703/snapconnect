@@ -1,6 +1,7 @@
 import 'package:snapconnect/core/models/user_model.dart';
 import 'package:snapconnect/core/services/session_service.dart';
-import 'package:snapconnect/core/services/supabase_service.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
 import 'package:snapconnect/core/utils/avatar_helper.dart';
 import 'package:uuid/uuid.dart';
 
@@ -24,42 +25,23 @@ class OnboardingController {
         ? normalizedEmail!
         : displayName;
 
-    if (SupabaseService.isInitialized &&
-        (normalizedEmail?.isNotEmpty ?? false)) {
-      final client = SupabaseService.client;
-
+    if (normalizedEmail?.isNotEmpty ?? false) {
       try {
-        final existing = await client
-            .from('users')
-            .select()
-            .eq('email', normalizedEmail!)
-            .maybeSingle();
+        final response = await ApiClient().post(
+          ApiEndpoints.userRegister,
+          data: {
+            'name': displayName,
+            'email': normalizedEmail,
+            'avatar_color': AvatarHelper.colorHexFromSeed(colorSeed),
+          },
+        );
 
-        if (existing != null) {
-          final user = UserModel.fromJson(existing);
-          await _sessionService.saveUser(user);
-          return user;
+        if (response.statusCode == 200 || response.statusCode == 201) {
+           final user = UserModel.fromJson(response.data['data']);
+           await _sessionService.saveUser(user);
+           return user;
         }
-
-        final newUserPayload = {
-          'id': _uuid.v4(),
-          'name': displayName,
-          'email': normalizedEmail,
-          'avatar_color': AvatarHelper.colorHexFromSeed(colorSeed),
-        };
-
-        final inserted = await client
-            .from('users')
-            .insert(newUserPayload)
-            .select()
-            .single();
-
-        final user = UserModel.fromJson(inserted);
-        await _sessionService.saveUser(user);
-        return user;
-      } catch (_) {
-        // Falls through to local-only session fallback.
-      }
+      } catch (_) {}
     }
 
     final fallbackUser = UserModel(

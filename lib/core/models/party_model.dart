@@ -2,7 +2,7 @@
 class PartyModel {
   const PartyModel({
     required this.id,
-    required this.name,
+    required this.fullName,
     required this.hostId,
     required this.hostName,
     required this.joinCode,
@@ -15,7 +15,7 @@ class PartyModel {
   });
 
   final String id;
-  final String name;
+  final String fullName;
   final String? description;
   final String hostId;
   final String hostName;
@@ -30,7 +30,7 @@ class PartyModel {
   factory PartyModel.fromJson(Map<String, dynamic> json) {
     return PartyModel(
       id: (json['id'] ?? '').toString(),
-      name: (json['name'] ?? 'Untitled Party').toString(),
+      fullName: (json['name'] ?? 'Untitled Party').toString(),
       description: json['description']?.toString(),
       hostId: (json['host_id'] ?? '').toString(),
       hostName: (json['host_name'] ?? 'Host').toString(),
@@ -49,7 +49,7 @@ class PartyModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'name': name,
+      'name': fullName,
       'description': description,
       'host_id': hostId,
       'host_name': hostName,
@@ -65,7 +65,7 @@ class PartyModel {
   /// Creates a copy with selective field updates.
   PartyModel copyWith({
     String? id,
-    String? name,
+    String? fullName,
     String? description,
     String? hostId,
     String? hostName,
@@ -78,7 +78,7 @@ class PartyModel {
   }) {
     return PartyModel(
       id: id ?? this.id,
-      name: name ?? this.name,
+      fullName: fullName ?? this.fullName,
       description: description ?? this.description,
       hostId: hostId ?? this.hostId,
       hostName: hostName ?? this.hostName,
