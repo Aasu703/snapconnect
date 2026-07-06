@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:snapconnect/core/models/user_model.dart';
-import 'package:snapconnect/core/providers/app_providers.dart';
+import 'package:snapconnect/features/onboarding/onboarding_controller.dart';
+import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/utils/validators.dart';
+import 'package:snapconnect/core/di/injection_container.dart';
 
 /// Compact identity form shown before protected actions.
-class IdentityBottomSheet extends ConsumerStatefulWidget {
+class IdentityBottomSheet extends StatefulWidget {
   const IdentityBottomSheet({
     super.key,
     this.title = 'Before you continue',
@@ -33,11 +35,10 @@ class IdentityBottomSheet extends ConsumerStatefulWidget {
   }
 
   @override
-  ConsumerState<IdentityBottomSheet> createState() =>
-      _IdentityBottomSheetState();
+  State<IdentityBottomSheet> createState() => _IdentityBottomSheetState();
 }
 
-class _IdentityBottomSheetState extends ConsumerState<IdentityBottomSheet> {
+class _IdentityBottomSheetState extends State<IdentityBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -47,7 +48,7 @@ class _IdentityBottomSheetState extends ConsumerState<IdentityBottomSheet> {
   @override
   void initState() {
     super.initState();
-    final user = ref.read(sessionProvider);
+    final user = context.read<SessionCubit>().state;
     if (user != null) {
       _nameController.text = user.name;
       _emailController.text = user.email ?? '';
@@ -70,21 +71,18 @@ class _IdentityBottomSheetState extends ConsumerState<IdentityBottomSheet> {
     setState(() => _isSubmitting = true);
 
     try {
-      final controller = ref.read(onboardingControllerProvider);
+      final controller = sl<OnboardingController>();
       final user = await controller.createOrRestoreUser(
         name: _nameController.text,
         email: _emailController.text,
       );
-      await ref.read(sessionProvider.notifier).setUser(user);
+      if (!mounted) return;
+      await context.read<SessionCubit>().setUser(user);
 
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       Navigator.of(context).pop(user);
     } catch (_) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

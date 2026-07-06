@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/models/album_model.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -43,7 +44,7 @@ class AlbumCard extends StatelessWidget {
             return Transform.scale(scale: scale, child: child);
           },
           child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
@@ -98,7 +99,7 @@ class AlbumCard extends StatelessWidget {
                         left: 10,
                         right: 10,
                         child: Text(
-                          album.name.isEmpty ? 'Untitled' : album.name,
+                          album.fullName.isEmpty ? 'Untitled' : album.fullName,
                           style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 color: Colors.white,
@@ -148,20 +149,19 @@ class AlbumCard extends StatelessWidget {
 
   Widget _placeholder() {
     final colors = [
-      const Color(0xFF4D96FF),
-      const Color(0xFF6BCB77),
-      const Color(0xFFFF6B6B),
-      const Color(0xFFFFC93C),
-      const Color(0xFFC77DFF),
+      AppColors.primary,
+      AppColors.secondary,
+      AppColors.tertiaryContainer,
+      AppColors.error,
     ];
-    final name = album.name.trim();
-    final color = colors[name.length % colors.length];
+    final fullName = album.fullName.trim();
+    final color = colors[fullName.length % colors.length];
 
     return Container(
       color: color,
       child: Center(
         child: Text(
-          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
           style: const TextStyle(
             color: Colors.white,
             fontSize: 48,
