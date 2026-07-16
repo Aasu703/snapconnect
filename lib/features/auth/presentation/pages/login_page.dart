@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import '../BloC/auth_cubit.dart';
 import '../BloC/auth_state.dart';
 
@@ -45,13 +45,7 @@ class _LoginPageState extends State<LoginPage> {
           if (state is Authenticated) {
             context.go('/');
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: AppColors.danger,
-              ),
-            );
+            AppSnackBar.showError(context, state.message);
           }
         },
         child: Container(
@@ -480,12 +474,7 @@ class _SocialButton extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Coming soon!'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppSnackBar.showInfo(context, AppStrings.comingSoon);
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

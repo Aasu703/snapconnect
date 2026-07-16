@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import '../BloC/auth_cubit.dart';
 import '../BloC/auth_state.dart';
 
@@ -86,13 +86,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
     if (!_agreedToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Please agree to the terms to continue'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.warning,
-        ),
-      );
+      AppSnackBar.showInfo(context, 'Please agree to the terms to continue');
       return;
     }
 
@@ -112,21 +106,10 @@ class _RegisterPageState extends State<RegisterPage> {
       body: BlocListener<AuthCubit, AuthState>(
         listener: (context, state) {
           if (state is RegisterSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Account created! Please sign in.'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppSnackBar.showSuccess(context, 'Account created! Please sign in.');
             context.go('/login');
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: AppColors.danger,
-              ),
-            );
+            AppSnackBar.showError(context, state.message);
           }
         },
         child: Container(

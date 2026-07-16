@@ -1,6 +1,7 @@
 import 'package:confetti/confetti.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
@@ -11,7 +12,6 @@ import 'package:snapconnect/features/party/party_controller.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/utils/validators.dart';
-import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
 /// Join screen that supports QR scanning and manual code entry.
@@ -70,9 +70,7 @@ class _JoinPartyScreenState extends State<JoinPartyScreen> {
   Future<void> _resolveCode() async {
     final validation = Validators.validateJoinCode(_codeController.text);
     if (validation != null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(validation)));
+      AppSnackBar.showError(context, validation);
       return;
     }
 

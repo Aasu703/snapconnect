@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/models/user_model.dart';
 import 'package:snapconnect/features/events/data/repositories/event_repository_impl.dart';
@@ -66,9 +66,7 @@ class _GuestLandingScreenState extends State<GuestLandingScreen> {
       context.go('/guest/${widget.joinCode}/album');
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to join event')));
+        AppSnackBar.showError(context, 'Failed to join event');
         setState(() => _isJoining = false);
       }
     }
@@ -261,7 +259,7 @@ class _GuestLandingScreenState extends State<GuestLandingScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             gradient: const LinearGradient(
-                              colors: [AppColors.primary, Color(0xFF6C63FF)],
+                              colors: [AppColors.primary, AppColors.accentPurple],
                             ),
                             boxShadow: [
                               BoxShadow(

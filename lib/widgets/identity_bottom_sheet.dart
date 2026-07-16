@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:snapconnect/core/models/user_model.dart';
@@ -84,10 +85,9 @@ class _IdentityBottomSheetState extends State<IdentityBottomSheet> {
     } catch (_) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not save identity. Please try again.'),
-        ),
+      AppSnackBar.showError(
+        context,
+        'Could not save identity. Please try again.',
       );
     } finally {
       if (mounted) {

@@ -149,7 +149,7 @@ class _UploadSuccessScreenState extends State<UploadSuccessScreen> {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           gradient: const LinearGradient(
-                            colors: [AppColors.primary, Color(0xFF6C63FF)],
+                            colors: [AppColors.primary, AppColors.accentPurple],
                           ),
                         ),
                         child: Material(
