@@ -40,6 +40,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       context.read<AlbumsBloc>().add(FetchAlbums());
+      context.read<UploadBloc>().add(UploadCheckLostData());
       await _ensureIdentity();
     });
   }
