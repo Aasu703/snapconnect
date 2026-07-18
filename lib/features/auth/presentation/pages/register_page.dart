@@ -80,13 +80,32 @@ class _RegisterPageState extends State<RegisterPage> {
     }
   }
 
+  void _validateAndSubmit() {
+    if (_phoneKey.currentState?.validate() ?? false) {
+      _submit();
+    }
+  }
+
+  void _skipPhone() {
+    _phoneController.clear();
+    _submit();
+  }
+
   void _submit() {
+    final username = _usernameController.text.trim();
+    final phone = _phoneController.text.trim();
     context.read<AuthCubit>().register({
-      'username': _usernameController.text.trim(),
+      // The backend's user record is keyed on Firstname/Lastname rather than
+      // a single username field, so the username collected here is mapped
+      // onto Firstname to satisfy that contract without resurrecting a
+      // separate name step in this UI.
+      'Firstname': username,
+      'Lastname': '',
+      'username': username,
       'email': _emailController.text.trim(),
       'password': _passwordController.text,
       'confirmPassword': _confirmPasswordController.text,
-      'phone': _phoneController.text.trim(),
+      if (phone.isNotEmpty) 'phone': phone,
     });
   }
 
@@ -136,14 +155,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         textInputAction: TextInputAction.next,
                         onFieldSubmitted: (_) =>
                             _validateAndAdvance(_emailKey),
-                        validator: (v) {
-                          final value = (v ?? '').trim();
-                          if (value.isEmpty) return 'Email is required';
-                          if (!value.contains('@')) {
-                            return 'Enter a valid email';
-                          }
-                          return null;
-                        },
+                        validator: Validators.validateEmail,
                       ),
                     ),
                     SignupFieldStep(
@@ -158,14 +170,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         textInputAction: TextInputAction.next,
                         onFieldSubmitted: (_) =>
                             _validateAndAdvance(_usernameKey),
-                        validator: (v) {
-                          final value = (v ?? '').trim();
-                          if (value.isEmpty) return 'Username is required';
-                          if (value.length < 3) {
-                            return 'At least 3 characters';
-                          }
-                          return null;
-                        },
+                        validator: Validators.validateUsername,
                       ),
                     ),
                     SignupFieldStep(
@@ -192,12 +197,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           onPressed: () => setState(
                               () => _obscurePassword = !_obscurePassword),
                         ),
-                        validator: (v) {
-                          final value = v ?? '';
-                          if (value.isEmpty) return 'Password is required';
-                          if (value.length < 6) return 'At least 6 characters';
-                          return null;
-                        },
+                        validator: Validators.validatePassword,
                       ),
                     ),
                     SignupFieldStep(
@@ -224,12 +224,8 @@ class _RegisterPageState extends State<RegisterPage> {
                               _obscureConfirmPassword =
                                   !_obscureConfirmPassword),
                         ),
-                        validator: (v) {
-                          if (v != _passwordController.text) {
-                            return 'Passwords do not match';
-                          }
-                          return null;
-                        },
+                        validator: (v) => Validators.validateConfirmPassword(
+                            _passwordController.text, v),
                       ),
                     ),
                     SignupFieldStep(
