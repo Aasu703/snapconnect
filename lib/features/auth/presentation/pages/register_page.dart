@@ -115,13 +115,7 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF1A1A2E), Color(0xFF0F172A)],
-            ),
-          ),
+          color: context.appColors.screenBackground,
           child: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -133,8 +127,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     alignment: Alignment.centerLeft,
                     child: IconButton(
                       onPressed: () => context.go('/login'),
-                      icon: const Icon(Icons.arrow_back_ios_rounded,
-                          color: Colors.white, size: 20),
+                      icon: Icon(Icons.arrow_back_ios_rounded,
+                          color: context.colors.onSurface, size: 20),
                     ),
                   ),
                   const Gap(8),
@@ -154,10 +148,10 @@ class _RegisterPageState extends State<RegisterPage> {
                     constraints: const BoxConstraints(maxWidth: 480),
                     padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: context.appColors.cardBackground,
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.06),
+                        color: context.appColors.cardBorder,
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -174,19 +168,16 @@ class _RegisterPageState extends State<RegisterPage> {
                         children: [
                           Text(
                             'Create account',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                            style: context.text.headlineMedium?.copyWith(
+                              color: context.colors.onSurface,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                           const Gap(6),
                           Text(
                             'Join us and start sharing memories',
                             style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: context.appColors.mutedText,
                               fontSize: 14,
                             ),
                           ),
@@ -256,7 +247,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: Colors.white.withValues(alpha: 0.4),
+                                color: context.appColors.mutedText,
                                 size: 20,
                               ),
                               onPressed: () => setState(
@@ -313,7 +304,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 _obscureConfirm
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                color: Colors.white.withValues(alpha: 0.4),
+                                color: context.appColors.mutedText,
                                 size: 20,
                               ),
                               onPressed: () => setState(

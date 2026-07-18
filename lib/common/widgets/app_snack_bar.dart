@@ -15,11 +15,21 @@ final class AppSnackBar {
   }
 
   static void showSuccess(BuildContext context, String message) {
-    _show(context, message, context.appColors.success, Colors.white);
+    final background = context.appColors.success;
+    _show(context, message, background, _foregroundFor(background));
   }
 
   static void showError(BuildContext context, String message) {
-    _show(context, message, context.appColors.danger, Colors.white);
+    final background = context.appColors.danger;
+    _show(context, message, background, _foregroundFor(background));
+  }
+
+  /// Picks a legible black/white foreground for a given background so
+  /// snackbar text stays readable in both light and dark theme.
+  static Color _foregroundFor(Color background) {
+    return ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
   }
 
   static void _show(

@@ -62,6 +62,10 @@ final class AppColors {
   static const darkTextPrimary = Color(0xFFF3F4F6);
   static const darkTextSecondary = Color(0xFF9CA3AF);
 
+  /// Slightly lighter than [darkSurface] so filled inputs stand out against
+  /// dark cards/scaffolds.
+  static const darkInputFill = Color(0xFF1E293B);
+
   static const avatarColors = <Color>[
     Color(0xFFFF6B6B),
     Color(0xFFFF8E53),

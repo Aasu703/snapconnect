@@ -51,6 +51,8 @@ class AppTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
     return TextFormField(
       controller: controller,
       validator: validator,
@@ -64,6 +66,10 @@ class AppTextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       onChanged: onChanged,
       onFieldSubmitted: onFieldSubmitted,
+      // Explicit so typed text always matches the active theme rather than
+      // relying on TextFormField's implicit default.
+      style: TextStyle(color: enabled ? colors.onSurface : colors.onSurface.withValues(alpha: 0.38)),
+      cursorColor: colors.secondary,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,

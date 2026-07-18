@@ -53,6 +53,12 @@ final class AppTheme {
           horizontal: AppDimens.md,
           vertical: AppDimens.md,
         ),
+        labelStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+        floatingLabelStyle: const TextStyle(color: AppColors.secondary),
+        hintStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+        helperStyle: const TextStyle(color: AppColors.onSurfaceVariant),
+        prefixIconColor: AppColors.onSurfaceVariant,
+        suffixIconColor: AppColors.onSurfaceVariant,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
           borderSide: const BorderSide(color: AppColors.outlineVariant, width: 1),
@@ -117,11 +123,17 @@ final class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF1E293B),
+        fillColor: AppColors.darkInputFill,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppDimens.md,
           vertical: AppDimens.md,
         ),
+        labelStyle: const TextStyle(color: AppColors.darkTextSecondary),
+        floatingLabelStyle: const TextStyle(color: AppColors.secondaryContainer),
+        hintStyle: const TextStyle(color: AppColors.darkTextSecondary),
+        helperStyle: const TextStyle(color: AppColors.darkTextSecondary),
+        prefixIconColor: AppColors.darkTextSecondary,
+        suffixIconColor: AppColors.darkTextSecondary,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppDimens.radiusMd),
           borderSide: const BorderSide(color: AppColors.darkBorder, width: 1),
