@@ -2,14 +2,13 @@ import 'dart:typed_data';
 
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:snapconnect/core/blocs/albums_bloc.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/blocs/upload_bloc.dart';
 import 'package:snapconnect/features/photos/photos_controller.dart';
-import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
-import 'package:snapconnect/widgets/loading_skeleton.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -41,6 +40,7 @@ class _UploadScreenState extends State<UploadScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       context.read<AlbumsBloc>().add(FetchAlbums());
+      context.read<UploadBloc>().add(UploadCheckLostData());
       await _ensureIdentity();
     });
   }
@@ -113,10 +113,10 @@ class _UploadScreenState extends State<UploadScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: context.appColors.screenBackground,
         appBar: AppBar(
-          title: const Text('Upload Photos'),
-          backgroundColor: Colors.white,
+          title: const Text(AppStrings.uploadPhotos),
+          backgroundColor: context.colors.surface,
           surfaceTintColor: Colors.transparent,
         ),
         body: Stack(
@@ -138,8 +138,11 @@ class _UploadScreenState extends State<UploadScreen> {
                 }
 
                 final albums = albumsState.albums ?? [];
-                
-                if (albums.isEmpty && !albumsState.isLoadingAlbums) {
+
+                if (albums.isEmpty) {
+                  if (albumsState.isLoadingAlbums) {
+                    return const LoadingSkeleton(columns: 1);
+                  }
                   return EmptyState(
                     title: 'Create an album first',
                     subtitle: 'Uploads need a target album.',

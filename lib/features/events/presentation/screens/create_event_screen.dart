@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/features/events/data/repositories/event_repository_impl.dart';
 import 'package:snapconnect/features/events/domain/entities/event_entity.dart';
@@ -81,9 +81,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
 
     final user = context.read<SessionCubit>().state;
     if (user == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please sign in first')));
+      AppSnackBar.showError(context, AppStrings.pleaseSignInFirst);
       return;
     }
 
@@ -126,13 +124,7 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       context.go('/events');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to create event: $e'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.danger,
-        ),
-      );
+      AppSnackBar.showError(context, 'Failed to create event: $e');
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

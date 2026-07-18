@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/constants/app_dimens.dart';
+import 'package:snapconnect/common/theme/context_extensions.dart';
 
 /// Minimal custom bottom navigation with a distinct upload action.
-class AppNavbar extends StatelessWidget {
-  const AppNavbar({
+///
+/// The center upload button is intentionally emphasized (Von Restorff Effect +
+/// Fitts's Law). Colors are theme-aware so the bar reads correctly in dark mode.
+class AppNavBar extends StatelessWidget {
+  const AppNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
@@ -19,21 +23,19 @@ class AppNavbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = uploadProgress?.clamp(0.0, 1.0);
+    final accent = context.colors.primary;
 
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: context.colors.surface,
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
+          top: BorderSide(color: context.colors.outlineVariant, width: 1),
         ),
       ),
       child: SafeArea(
         top: false,
         child: SizedBox(
-          height: 72,
+          height: AppDimens.navBarHeight,
           child: Stack(
             children: [
               if (uploadInProgress)
@@ -44,8 +46,8 @@ class AppNavbar extends StatelessWidget {
                   child: LinearProgressIndicator(
                     value: progress,
                     minHeight: 2,
-                    color: AppColors.primary,
-                    backgroundColor: AppColors.border,
+                    color: accent,
+                    backgroundColor: context.colors.outlineVariant,
                   ),
                 ),
               Row(
@@ -78,9 +80,9 @@ class AppNavbar extends StatelessWidget {
                     child: Center(
                       child: InkWell(
                         onTap: () => onTap(3),
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
                         child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
+                          duration: AppDimens.durationFast,
                           curve: Curves.easeOut,
                           width: 48,
                           height: 42,
@@ -90,24 +92,22 @@ class AppNavbar extends StatelessWidget {
                             0,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(12),
+                            color: accent,
+                            borderRadius:
+                                BorderRadius.circular(AppDimens.radiusMd),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withValues(
-                                  alpha: 0.28,
-                                ),
+                                color: accent.withValues(alpha: 0.28),
                                 blurRadius: 12,
                                 offset: const Offset(0, 4),
                               ),
                             ],
                           ),
                           alignment: Alignment.center,
-                          // Laws of UX: Von Restorff Effect + Fitts's Law.
-                          child: const Icon(
+                          child: Icon(
                             Icons.add_a_photo_rounded,
-                            color: Colors.white,
-                            size: 20,
+                            color: context.colors.onPrimary,
+                            size: AppDimens.iconMd,
                           ),
                         ),
                       ),
@@ -151,32 +151,31 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isActive = currentIndex == index;
-    final color = isActive
-        ? AppColors.primary
-        : Theme.of(context).colorScheme.onSurfaceVariant;
+    final color =
+        isActive ? context.colors.primary : context.colors.onSurfaceVariant;
 
     return Expanded(
       child: InkWell(
         onTap: () => onTap(index),
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
         child: SizedBox(
-          height: 64,
+          height: AppDimens.navItemHeight,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
+                duration: AppDimens.durationFast,
                 child: Icon(
                   isActive ? activeIcon : icon,
                   key: ValueKey<bool>(isActive),
                   color: color,
-                  size: 22,
+                  size: AppDimens.iconMd,
                 ),
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: AppDimens.space2),
               Text(
                 label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                style: context.text.bodySmall?.copyWith(
                   color: color,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                 ),

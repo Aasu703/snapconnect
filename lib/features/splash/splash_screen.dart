@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/services/session_service.dart';
 
 /// Premium animated splash screen with SnapConnect branding.
 ///
 /// Checks authentication state and routes accordingly:
 /// - Authenticated → Home
-/// - First launch → Onboarding
-/// - Returning unauthenticated → Login
+/// - Unauthenticated → the sliding welcome/sign-up flow
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -50,15 +49,16 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted || _navigated) return;
 
     _navigated = true;
-    final onboardingDone = SessionService.instance.isOnboardingCompleted();
     final hasSession = SessionService.instance.getUser() != null;
 
     if (hasSession) {
       context.go('/');
-    } else if (!onboardingDone) {
-      context.go('/onboarding');
-    } else {
+    } else if (SessionService.instance.isOnboardingCompleted()) {
+      // Returning device (e.g. just logged out) — skip the welcome/sign-up
+      // wizard and go straight to the sign-in form.
       context.go('/login');
+    } else {
+      context.go('/register');
     }
   }
 
@@ -78,11 +78,7 @@ class _SplashScreenState extends State<SplashScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1A1A2E),
-              Color(0xFF16213E),
-              Color(0xFF0F3460),
-            ],
+            colors: AppColors.brandGradient,
           ),
         ),
         child: SafeArea(
@@ -97,7 +93,7 @@ class _SplashScreenState extends State<SplashScreen>
                 baseColor: Colors.white,
                 highlightColor: AppColors.primary.withValues(alpha: 0.7),
                 child: Text(
-                  'SnapConnect',
+                  AppStrings.appName,
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,

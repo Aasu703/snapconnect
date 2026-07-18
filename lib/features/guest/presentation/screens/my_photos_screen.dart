@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/models/photo_model.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/api/api.client.dart';
@@ -101,9 +101,7 @@ class _MyPhotosScreenState extends State<MyPhotosScreen> {
       setState(() => _photos.removeWhere((p) => p.id == photoId));
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to delete photo')));
+        AppSnackBar.showError(context, 'Failed to delete photo');
       }
     }
   }
