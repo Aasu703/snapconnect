@@ -32,8 +32,7 @@ GoRouter buildAppRouter(BuildContext context) {
 }
 
 String? _redirect(BuildContext context, GoRouterState state) {
-  if (state.matchedLocation == RoutePaths.splash ||
-      state.matchedLocation == RoutePaths.onboarding) {
+  if (state.matchedLocation == RoutePaths.splash) {
     return null;
   }
 

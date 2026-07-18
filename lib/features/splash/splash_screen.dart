@@ -9,8 +9,7 @@ import 'package:snapconnect/core/services/session_service.dart';
 ///
 /// Checks authentication state and routes accordingly:
 /// - Authenticated → Home
-/// - First launch → Onboarding
-/// - Returning unauthenticated → Login
+/// - Unauthenticated → the sliding welcome/sign-up flow
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -50,15 +49,12 @@ class _SplashScreenState extends State<SplashScreen>
     if (!mounted || _navigated) return;
 
     _navigated = true;
-    final onboardingDone = SessionService.instance.isOnboardingCompleted();
     final hasSession = SessionService.instance.getUser() != null;
 
     if (hasSession) {
       context.go('/');
-    } else if (!onboardingDone) {
-      context.go('/onboarding');
     } else {
-      context.go('/login');
+      context.go('/register');
     }
   }
 

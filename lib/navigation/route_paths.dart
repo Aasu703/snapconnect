@@ -10,7 +10,6 @@ final class RoutePaths {
   static const String splash = '/splash';
   static const String login = '/login';
   static const String register = '/register';
-  static const String onboarding = '/onboarding';
 
   // --- Guest (no auth required) ---
   static const String guestLanding = '/guest/:joinCode';

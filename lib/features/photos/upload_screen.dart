@@ -138,8 +138,11 @@ class _UploadScreenState extends State<UploadScreen> {
                 }
 
                 final albums = albumsState.albums ?? [];
-                
-                if (albums.isEmpty && !albumsState.isLoadingAlbums) {
+
+                if (albums.isEmpty) {
+                  if (albumsState.isLoadingAlbums) {
+                    return const LoadingSkeleton(columns: 1);
+                  }
                   return EmptyState(
                     title: 'Create an album first',
                     subtitle: 'Uploads need a target album.',
