@@ -7,7 +7,7 @@ import 'package:snapconnect/common/common.dart';
 /// sign-up/login actions read clearly on top of it.
 ///
 /// Swapping or adding collage photos later only means editing
-/// [AppSvgAssets.welcomeCollageTiles] — this widget just lays out whatever
+/// [AppImageAssets.welcomeCollageTiles] — this widget just lays out whatever
 /// is registered there.
 class WelcomeCollageBackground extends StatelessWidget {
   const WelcomeCollageBackground({super.key, required this.height});
@@ -29,11 +29,11 @@ class WelcomeCollageBackground extends StatelessWidget {
               mainAxisSpacing: AppDimens.space10,
               crossAxisSpacing: AppDimens.space10,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: AppSvgAssets.welcomeCollageTiles.length,
+              itemCount: AppImageAssets.welcomeCollageTiles.length,
               itemBuilder: (context, index) => ClipRRect(
                 borderRadius: BorderRadius.circular(AppDimens.radiusMd),
-                child: AppSvg(
-                  AppSvgAssets.welcomeCollageTiles[index],
+                child: Image.asset(
+                  AppImageAssets.welcomeCollageTiles[index],
                   fit: BoxFit.cover,
                 ),
               ),

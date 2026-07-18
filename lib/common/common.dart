@@ -7,8 +7,8 @@ library;
 
 // Constants
 export 'constants/app_dimens.dart';
+export 'constants/app_image_assets.dart';
 export 'constants/app_strings.dart';
-export 'constants/app_svg_assets.dart';
 
 // Theme
 export 'theme/app_semantic_colors.dart';

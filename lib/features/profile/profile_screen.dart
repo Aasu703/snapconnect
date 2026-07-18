@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/features/auth/presentation/BloC/auth_cubit.dart';
 import 'package:snapconnect/features/profile/profile_controller.dart';
 import 'package:snapconnect/features/onboarding/onboarding_controller.dart';
 import 'package:snapconnect/core/utils/validators.dart';
@@ -165,7 +166,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
-    await context.read<SessionCubit>().clear();
+    // Clears both identity stores: SessionCubit (the party/upload identity)
+    // and AuthCubit (the secure-storage auth_token checked on every app
+    // boot) — otherwise a stale token lets checkAuth() silently sign the
+    // user back in on next launch.
+    final sessionCubit = context.read<SessionCubit>();
+    final authCubit = context.read<AuthCubit>();
+    await sessionCubit.clear();
+    await authCubit.logout();
     debugPrint('ProfileScreen: user logged out');
     if (mounted) {
       context.go('/');
