@@ -9,6 +9,7 @@ import 'package:snapconnect/core/utils/validators.dart';
 import '../BloC/auth_cubit.dart';
 import '../BloC/auth_state.dart';
 import '../widgets/signup_chrome.dart';
+import '../widgets/welcome_collage_background.dart';
 
 /// Sliding, single-field-per-step sign-up flow: welcome → email → username →
 /// password → confirm password → phone (optional). Each step validates
@@ -243,7 +244,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         autofocus: true,
                         keyboardType: TextInputType.phone,
                         textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) => _submit(),
+                        onFieldSubmitted: (_) => _validateAndSubmit(),
+                        validator: Validators.validateOptionalPhone,
                       ),
                     ),
                   ],
@@ -259,7 +261,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     continueLabel: step == _Step.phone
                         ? 'Create Account'
                         : AppStrings.continueLabel,
-                    onSkip: step == _Step.phone ? _submit : null,
+                    onSkip: step == _Step.phone ? _skipPhone : null,
                     onContinue: switch (step) {
                       _Step.welcome => null,
                       _Step.email => () => _validateAndAdvance(_emailKey),
@@ -269,7 +271,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           _validateAndAdvance(_passwordKey),
                       _Step.confirmPassword => () =>
                           _validateAndAdvance(_confirmPasswordKey),
-                      _Step.phone => _submit,
+                      _Step.phone => _validateAndSubmit,
                     },
                   );
                 },
@@ -332,72 +334,92 @@ class _WelcomeStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: AppDimens.screenPadding),
-      child: Column(
-        children: [
-          const Gap(AppDimens.space64),
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 28,
-                  spreadRadius: 4,
+    final collageHeight = MediaQuery.sizeOf(context).height * 0.4;
+
+    return Stack(
+      children: [
+        WelcomeCollageBackground(height: collageHeight),
+        SingleChildScrollView(
+          padding:
+              const EdgeInsets.symmetric(horizontal: AppDimens.screenPadding),
+          child: Column(
+            children: [
+              Gap(collageHeight * 0.78),
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.primary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.2),
+                      blurRadius: 28,
+                      spreadRadius: 4,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: const Icon(Icons.camera_alt_rounded,
-                color: Colors.white, size: 40),
-          )
-              .animate()
-              .fadeIn(duration: 400.ms)
-              .scale(
-                begin: const Offset(0.8, 0.8),
-                end: const Offset(1.0, 1.0),
-                duration: 400.ms,
-                curve: Curves.easeOutBack,
+                child: const Icon(Icons.camera_alt_rounded,
+                    color: Colors.white, size: 40),
+              )
+                  .animate()
+                  .fadeIn(duration: 400.ms)
+                  .scale(
+                    begin: const Offset(0.8, 0.8),
+                    end: const Offset(1.0, 1.0),
+                    duration: 400.ms,
+                    curve: Curves.easeOutBack,
+                  ),
+              const Gap(AppDimens.space24),
+              Text(
+                'Welcome to ${AppStrings.appName}',
+                textAlign: TextAlign.center,
+                style: context.text.headlineMedium?.copyWith(
+                  color: context.colors.onSurface,
+                  fontWeight: FontWeight.w800,
+                ),
+              ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
+              const Gap(AppDimens.space10),
+              Text(
+                'Capture, share, and celebrate every moment together.',
+                textAlign: TextAlign.center,
+                style: context.text.bodyMedium?.copyWith(
+                  color: context.appColors.mutedText,
+                ),
+              ).animate().fadeIn(delay: 250.ms, duration: 400.ms),
+              const Gap(AppDimens.space40),
+              SizedBox(
+                width: double.infinity,
+                height: AppDimens.buttonHeight,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    shape: const StadiumBorder(),
+                  ),
+                  onPressed: onCreateAccount,
+                  child: const Text('Sign up'),
+                ),
               ),
-          const Gap(AppDimens.space24),
-          Text(
-            'Welcome to ${AppStrings.appName}',
-            textAlign: TextAlign.center,
-            style: context.text.headlineMedium?.copyWith(
-              color: context.colors.onSurface,
-              fontWeight: FontWeight.w800,
-            ),
-          ).animate().fadeIn(delay: 150.ms, duration: 400.ms),
-          const Gap(AppDimens.space10),
-          Text(
-            'Capture, share, and celebrate every moment together.',
-            textAlign: TextAlign.center,
-            style: context.text.bodyMedium?.copyWith(
-              color: context.appColors.mutedText,
-            ),
-          ).animate().fadeIn(delay: 250.ms, duration: 400.ms),
-          const Gap(AppDimens.space40),
-          SizedBox(
-            width: double.infinity,
-            height: AppDimens.buttonHeight,
-            child: FilledButton(
-              onPressed: onCreateAccount,
-              child: const Text('Create an account'),
-            ),
+              const Gap(AppDimens.space12),
+              SizedBox(
+                width: double.infinity,
+                height: AppDimens.buttonHeight,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    shape: const StadiumBorder(),
+                    backgroundColor: Colors.transparent,
+                    side: BorderSide(color: context.appColors.cardBorder),
+                  ),
+                  onPressed: onLogIn,
+                  child: const Text('Log in'),
+                ),
+              ),
+              const Gap(AppDimens.space32),
+              _TermsNotice(),
+              const Gap(AppDimens.space24),
+            ],
           ),
-          const Gap(AppDimens.space12),
-          TextButton(
-            onPressed: onLogIn,
-            child: const Text('Log in'),
-          ),
-          const Gap(AppDimens.space32),
-          _TermsNotice(),
-          const Gap(AppDimens.space24),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

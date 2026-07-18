@@ -107,10 +107,10 @@ void main() {
 
       // Welcome step
       expect(find.text('Welcome to SnapConnect'), findsOneWidget);
-      expect(find.text('Create an account'), findsOneWidget);
+      expect(find.text('Sign up'), findsOneWidget);
       expect(find.text('Log in'), findsOneWidget);
 
-      await tester.tap(find.text('Create an account'));
+      await tester.tap(find.text('Sign up'));
       await tester.pumpAndSettle();
 
       // Email step — empty submit shows validation error
@@ -155,13 +155,15 @@ void main() {
       await tester.tap(find.text('Create Account'));
       await tester.pumpAndSettle();
 
-      // Register submitted with the collected fields and redirected to login.
+      // Register submitted with the collected fields (mapped onto the
+      // backend's Firstname/Lastname contract) and redirected to login.
       expect(repo.lastRegisterData, {
+        'Firstname': 'demo_user',
+        'Lastname': '',
         'username': 'demo_user',
         'email': 'demo@example.com',
         'password': 'password123',
         'confirmPassword': 'password123',
-        'phone': '',
       });
       expect(find.text('LOGIN SCREEN'), findsOneWidget);
     });
@@ -172,7 +174,7 @@ void main() {
     await tester.pumpWidget(_wrap(cubit, theme: AppTheme.light));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Create an account'));
+    await tester.tap(find.text('Sign up'));
     await tester.pumpAndSettle();
     expect(find.text("What's your email?"), findsOneWidget);
 
@@ -190,7 +192,7 @@ void main() {
     await tester.pumpWidget(_wrap(cubit, theme: AppTheme.light));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Create an account'));
+    await tester.tap(find.text('Sign up'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'demo@example.com');
     await tester.tap(find.text('Continue'));
@@ -209,7 +211,41 @@ void main() {
     await tester.tap(find.text('Skip for now'));
     await tester.pumpAndSettle();
 
-    expect(repo.lastRegisterData?['phone'], '');
+    expect(repo.lastRegisterData?.containsKey('phone'), isFalse);
     expect(find.text('LOGIN SCREEN'), findsOneWidget);
+  });
+
+  testWidgets('a too-short phone number is rejected before submitting',
+      (tester) async {
+    await tester.pumpWidget(_wrap(cubit, theme: AppTheme.light));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Sign up'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'demo@example.com');
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'demo_user');
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'password123');
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'password123');
+    await tester.tap(find.text('Continue'));
+    await tester.pumpAndSettle();
+
+    // Too short — blocked client-side instead of round-tripping to the backend.
+    await tester.enterText(find.byType(TextFormField), '12345');
+    await tester.tap(find.text('Create Account'));
+    await tester.pumpAndSettle();
+    expect(find.text('Enter at least 10 digits'), findsOneWidget);
+    expect(repo.lastRegisterData, isNull);
+
+    // A valid phone number is sent through untouched.
+    await tester.enterText(find.byType(TextFormField), '+1 234 567 8901');
+    await tester.tap(find.text('Create Account'));
+    await tester.pumpAndSettle();
+    expect(repo.lastRegisterData?['phone'], '+1 234 567 8901');
   });
 }
