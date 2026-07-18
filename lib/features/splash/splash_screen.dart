@@ -53,11 +53,10 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (hasSession) {
       context.go('/');
-    } else if (SessionService.instance.isOnboardingCompleted()) {
-      // Returning device (e.g. just logged out) — skip the welcome/sign-up
-      // wizard and go straight to the sign-in form.
-      context.go('/login');
     } else {
+      // Always land on the welcome/sign-up wizard when logged out — fresh
+      // install or just-logged-out alike. It has its own "Log in" button
+      // for returning users, so this is the single logged-out entry point.
       context.go('/register');
     }
   }
