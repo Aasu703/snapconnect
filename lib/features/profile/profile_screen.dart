@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/blocs/albums_bloc.dart';
 import 'package:snapconnect/features/auth/presentation/BloC/auth_cubit.dart';
 import 'package:snapconnect/features/profile/profile_controller.dart';
 import 'package:snapconnect/features/onboarding/onboarding_controller.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 import 'package:snapconnect/common/common.dart';
+import 'package:snapconnect/widgets/album_card.dart';
 
 /// Profile screen that always renders a visible state.
 class ProfileScreen extends StatefulWidget {
@@ -31,6 +33,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user != null) {
       _nameController.text = user.name;
       _emailController.text = user.email ?? '';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<AlbumsBloc>().add(FetchUserAlbums(user.id));
+        }
+      });
     }
   }
 
@@ -293,6 +300,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           const Gap(AppDimens.space20),
+          Text('My Albums', style: context.text.titleMedium),
+          const Gap(AppDimens.space12),
+          _MyAlbumsSection(),
+          const Gap(AppDimens.space20),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.edit_outlined),
@@ -321,6 +332,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
             label: const Text(AppStrings.logout),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shows the current user's own albums (public and private).
+class _MyAlbumsSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final albumsState = context.watch<AlbumsBloc>().state;
+
+    if (albumsState.isLoadingUserAlbums && albumsState.userAlbums == null) {
+      return const SizedBox(
+        height: 160,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (albumsState.userAlbumsError != null &&
+        (albumsState.userAlbums == null || albumsState.userAlbums!.isEmpty)) {
+      return Text(
+        'Could not load your albums.',
+        style: context.text.bodyMedium
+            ?.copyWith(color: context.appColors.mutedText),
+      );
+    }
+
+    final userAlbums = albumsState.userAlbums ?? [];
+    if (userAlbums.isEmpty) {
+      return Text(
+        'You haven\'t created any albums yet.',
+        style: context.text.bodyMedium
+            ?.copyWith(color: context.appColors.mutedText),
+      );
+    }
+
+    return SizedBox(
+      height: 160,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: userAlbums.length,
+        separatorBuilder: (_, _) => const Gap(AppDimens.space12),
+        itemBuilder: (context, index) {
+          return SizedBox(
+            width: 140,
+            child: AlbumCard(album: userAlbums[index], index: index, tall: false),
+          );
+        },
       ),
     );
   }

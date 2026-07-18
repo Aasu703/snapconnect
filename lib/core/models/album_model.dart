@@ -8,6 +8,7 @@ class AlbumModel {
     this.coverUrl,
     this.createdBy,
     this.createdByName,
+    this.isPrivate = false,
   });
 
   final String id;
@@ -17,6 +18,7 @@ class AlbumModel {
   final String? createdByName;
   final DateTime createdAt;
   final int photoCount;
+  final bool isPrivate;
 
   /// Creates an album model from Supabase response data.
   factory AlbumModel.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class AlbumModel {
       createdByName: json['created_by_name']?.toString(),
       createdAt: _parseDate(json['created_at']),
       photoCount: _parseCount(json['photo_count']),
+      isPrivate: json['is_private'] == true,
     );
   }
 
@@ -41,6 +44,7 @@ class AlbumModel {
       'created_by_name': createdByName,
       'created_at': createdAt.toIso8601String(),
       'photo_count': photoCount,
+      'is_private': isPrivate,
     };
   }
 
@@ -53,6 +57,7 @@ class AlbumModel {
     String? createdByName,
     DateTime? createdAt,
     int? photoCount,
+    bool? isPrivate,
   }) {
     return AlbumModel(
       id: id ?? this.id,
@@ -62,6 +67,7 @@ class AlbumModel {
       createdByName: createdByName ?? this.createdByName,
       createdAt: createdAt ?? this.createdAt,
       photoCount: photoCount ?? this.photoCount,
+      isPrivate: isPrivate ?? this.isPrivate,
     );
   }
 

@@ -15,6 +15,13 @@ abstract class AlbumsEvent extends Equatable {
 
 class FetchAlbums extends AlbumsEvent {}
 
+class FetchUserAlbums extends AlbumsEvent {
+  final String userId;
+  const FetchUserAlbums(this.userId);
+  @override
+  List<Object?> get props => [userId];
+}
+
 class FetchAlbumPhotos extends AlbumsEvent {
   final String albumId;
   const FetchAlbumPhotos(this.albumId);
@@ -28,6 +35,10 @@ class AlbumsState extends Equatable {
   final bool isLoadingAlbums;
   final String? albumsError;
 
+  final List<AlbumModel>? userAlbums;
+  final bool isLoadingUserAlbums;
+  final String? userAlbumsError;
+
   final List<PhotoModel>? albumPhotos;
   final bool isLoadingAlbumPhotos;
   final String? albumPhotosError;
@@ -36,6 +47,9 @@ class AlbumsState extends Equatable {
     this.albums,
     this.isLoadingAlbums = false,
     this.albumsError,
+    this.userAlbums,
+    this.isLoadingUserAlbums = false,
+    this.userAlbumsError,
     this.albumPhotos,
     this.isLoadingAlbumPhotos = false,
     this.albumPhotosError,
@@ -45,6 +59,9 @@ class AlbumsState extends Equatable {
     List<AlbumModel>? albums,
     bool? isLoadingAlbums,
     String? albumsError,
+    List<AlbumModel>? userAlbums,
+    bool? isLoadingUserAlbums,
+    String? userAlbumsError,
     List<PhotoModel>? albumPhotos,
     bool? isLoadingAlbumPhotos,
     String? albumPhotosError,
@@ -53,6 +70,9 @@ class AlbumsState extends Equatable {
       albums: albums ?? this.albums,
       isLoadingAlbums: isLoadingAlbums ?? this.isLoadingAlbums,
       albumsError: albumsError ?? this.albumsError,
+      userAlbums: userAlbums ?? this.userAlbums,
+      isLoadingUserAlbums: isLoadingUserAlbums ?? this.isLoadingUserAlbums,
+      userAlbumsError: userAlbumsError ?? this.userAlbumsError,
       albumPhotos: albumPhotos ?? this.albumPhotos,
       isLoadingAlbumPhotos: isLoadingAlbumPhotos ?? this.isLoadingAlbumPhotos,
       albumPhotosError: albumPhotosError ?? this.albumPhotosError,
@@ -64,6 +84,9 @@ class AlbumsState extends Equatable {
         albums,
         isLoadingAlbums,
         albumsError,
+        userAlbums,
+        isLoadingUserAlbums,
+        userAlbumsError,
         albumPhotos,
         isLoadingAlbumPhotos,
         albumPhotosError,
@@ -76,6 +99,7 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
 
   AlbumsBloc(this._albumsController) : super(const AlbumsState()) {
     on<FetchAlbums>(_onFetchAlbums);
+    on<FetchUserAlbums>(_onFetchUserAlbums);
     on<FetchAlbumPhotos>(_onFetchAlbumPhotos);
     sl<AppLogger>().debug('AlbumsBloc initialized');
   }
@@ -90,6 +114,19 @@ class AlbumsBloc extends Bloc<AlbumsEvent, AlbumsState> {
     } catch (e) {
       sl<AppLogger>().error('Error fetching albums: $e');
       emit(state.copyWith(isLoadingAlbums: false, albumsError: e.toString()));
+    }
+  }
+
+  Future<void> _onFetchUserAlbums(FetchUserAlbums event, Emitter<AlbumsState> emit) async {
+    emit(state.copyWith(isLoadingUserAlbums: true, userAlbumsError: null));
+    sl<AppLogger>().info('Fetching albums for user: ${event.userId}');
+    try {
+      final albums = await _albumsController.fetchUserAlbums(event.userId);
+      emit(state.copyWith(userAlbums: albums, isLoadingUserAlbums: false));
+      sl<AppLogger>().good('Fetched ${albums.length} user albums');
+    } catch (e) {
+      sl<AppLogger>().error('Error fetching user albums: $e');
+      emit(state.copyWith(isLoadingUserAlbums: false, userAlbumsError: e.toString()));
     }
   }
 

@@ -23,6 +23,7 @@ class _CreateAlbumScreenState extends State<CreateAlbumScreen> {
   final _nameController = TextEditingController();
 
   bool _isSubmitting = false;
+  bool _isPrivate = false;
 
   @override
   void dispose() {
@@ -52,8 +53,11 @@ class _CreateAlbumScreenState extends State<CreateAlbumScreen> {
     setState(() => _isSubmitting = true);
 
     try {
-      final album = await sl<AlbumsController>()
-          .createAlbum(name: _nameController.text, user: user);
+      final album = await sl<AlbumsController>().createAlbum(
+        name: _nameController.text,
+        user: user,
+        isPrivate: _isPrivate,
+      );
 
       if (context.mounted) {
         context.read<AlbumsBloc>().add(FetchAlbums());
@@ -100,6 +104,16 @@ class _CreateAlbumScreenState extends State<CreateAlbumScreen> {
                     controller: _nameController,
                     decoration: const InputDecoration(hintText: 'Summer 2026'),
                     validator: Validators.validateName,
+                  ),
+                  const Gap(12),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: _isPrivate,
+                    onChanged: (value) => setState(() => _isPrivate = value),
+                    title: const Text('Private album'),
+                    subtitle: const Text(
+                      'Only you can see this album. Public albums show up for everyone.',
+                    ),
                   ),
                   const Gap(20),
                   SizedBox(
