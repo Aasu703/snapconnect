@@ -67,6 +67,8 @@ class UploadAll extends UploadEvent {
   List<Object?> get props => [albumId, user, title];
 }
 
+class UploadCheckLostData extends UploadEvent {}
+
 class UploadReset extends UploadEvent {}
 
 // ── Bloc ───────────────────────────────────────────────────────────────────
@@ -80,6 +82,7 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
     on<UploadRetryItem>(_onRetryItem);
     on<UploadProgress>(_onProgress);
     on<UploadAll>(_onUploadAll);
+    on<UploadCheckLostData>(_onCheckLostData);
     on<UploadReset>(_onReset);
     sl<AppLogger>().debug('UploadBloc initialized');
   }
@@ -89,6 +92,9 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
     final files = await _photosController.pickMultiplePhotos();
     if (files.isEmpty) {
       sl<AppLogger>().debug('No photos selected');
+      emit(state.copyWith(
+        error: 'No photos were selected. If the picker closed unexpectedly, please try again.',
+      ));
       return;
     }
 
@@ -188,6 +194,30 @@ class UploadBloc extends Bloc<UploadEvent, UploadState> {
     } else {
       sl<AppLogger>().good('Upload completed successfully');
     }
+  }
+
+  Future<void> _onCheckLostData(UploadCheckLostData event, Emitter<UploadState> emit) async {
+    List<UploadItem> lost;
+    try {
+      final files = await _photosController.retrieveLostPhotos();
+      if (files.isEmpty) return;
+      lost = files.map((file) => UploadItem(file: file)).toList();
+    } catch (error) {
+      sl<AppLogger>().error('Failed to recover lost picker data', error);
+      return;
+    }
+
+    sl<AppLogger>().warning('Recovered ${lost.length} photo(s) lost during picking');
+
+    final merged = <UploadItem>[...state.items, ...lost];
+    final validation = await _photosController.validateFiles(
+      merged.map((item) => item.file).toList(),
+    );
+    if (validation != null) {
+      emit(state.copyWith(error: validation));
+      return;
+    }
+    emit(state.copyWith(items: merged, totalCount: merged.length, error: null));
   }
 
   void _onReset(UploadReset event, Emitter<UploadState> emit) {

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/api/api.client.dart';
@@ -125,13 +125,7 @@ class _PhotoPickerScreenState extends State<PhotoPickerScreen> {
         '/upload-success?count=$successCount&joinCode=${widget.joinCode}',
       );
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Upload failed. Please try again.'),
-          behavior: SnackBarBehavior.floating,
-          backgroundColor: AppColors.danger,
-        ),
-      );
+      AppSnackBar.showError(context, AppStrings.uploadFailed);
       setState(() => _isUploading = false);
     }
   }
@@ -305,7 +299,7 @@ class _PhotoPickerScreenState extends State<PhotoPickerScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
                         gradient: const LinearGradient(
-                          colors: [AppColors.primary, Color(0xFF6C63FF)],
+                          colors: [AppColors.primary, AppColors.accentPurple],
                         ),
                       ),
                       child: Material(

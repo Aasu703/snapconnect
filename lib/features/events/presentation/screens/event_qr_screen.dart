@@ -4,7 +4,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
 import 'package:snapconnect/core/api/api.client.dart';
 import 'package:snapconnect/core/api/api.endpoints.dart';
@@ -62,11 +62,7 @@ class _EventQRScreenState extends State<EventQRScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1A1A2E),
-              Color(0xFF16213E),
-              Color(0xFF0F3460),
-            ],
+            colors: AppColors.brandGradient,
           ),
         ),
         child: SafeArea(
@@ -184,7 +180,7 @@ class _EventQRScreenState extends State<EventQRScreen> {
                   child: FilledButton.icon(
                     onPressed: _share,
                     icon: const Icon(Icons.share_rounded),
-                    label: const Text('Share Invite Link'),
+                    label: const Text(AppStrings.shareInviteLink),
                     style: FilledButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,

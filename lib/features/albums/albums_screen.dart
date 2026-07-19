@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/models/album_model.dart';
 import 'package:snapconnect/core/blocs/albums_bloc.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/widgets/album_card.dart';
-import 'package:snapconnect/widgets/avatar_widget.dart';
-import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
-import 'package:snapconnect/widgets/loading_skeleton.dart';
 
 enum _AlbumFilter { all, recent, parties, mine }
 
@@ -233,9 +230,7 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
           actions: [
             IconButton(
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Search coming soon.')),
-                );
+                AppSnackBar.showInfo(context, 'Search coming soon.');
               },
               tooltip: 'Search',
               icon: const Icon(Icons.search_rounded),

@@ -116,6 +116,24 @@ class PhotosController {
     return _imagePicker.pickImage(source: ImageSource.camera);
   }
 
+  /// Recovers photo(s) lost when Android killed the app's activity while
+  /// the system picker was open. Should be called on screen init so a
+  /// pending pick from before a process death can still be recovered.
+  Future<List<XFile>> retrieveLostPhotos() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return const <XFile>[];
+    }
+
+    final response = await _imagePicker.retrieveLostData();
+    if (response.isEmpty) {
+      return const <XFile>[];
+    }
+    if (response.exception != null) {
+      throw response.exception!;
+    }
+    return response.files ?? (response.file != null ? [response.file!] : const <XFile>[]);
+  }
+
   /// Validates upload constraints for count and file size.
   Future<String?> validateFiles(List<XFile> files) async {
     if (files.length > AppConstants.maxUploadPhotos) {

@@ -5,6 +5,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:snapconnect/features/auth/presentation/BloC/auth_cubit.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/blocs/upload_bloc.dart';
+import 'package:snapconnect/core/blocs/party_bloc.dart';
+import 'package:snapconnect/core/blocs/albums_bloc.dart';
+import 'package:snapconnect/core/blocs/profile_bloc.dart';
 import 'package:talker_bloc_logger/talker_bloc_logger.dart';
 import 'package:snapconnect/app.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
@@ -30,6 +34,10 @@ Future<void> main() async {
         BlocProvider(create: (_) => sl<SessionCubit>()),
         BlocProvider(create: (_) => sl<ThemeModeCubit>()),
         BlocProvider(create: (_) => sl<AuthCubit>()..checkAuth()),
+        BlocProvider(create: (_) => sl<UploadBloc>()),
+        BlocProvider(create: (_) => sl<PartyBloc>()),
+        BlocProvider(create: (_) => sl<AlbumsBloc>()),
+        BlocProvider(create: (_) => sl<ProfileCubit>()),
       ],
       child: const SnapConnectApp(),
     ),

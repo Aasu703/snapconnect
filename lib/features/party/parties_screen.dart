@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/models/party_model.dart';
 import 'package:snapconnect/core/blocs/party_bloc.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
-import 'package:snapconnect/widgets/empty_state.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
-import 'package:snapconnect/widgets/loading_skeleton.dart';
 
 /// Screen showing active parties with explicit async states.
 class PartiesScreen extends StatefulWidget {
@@ -59,16 +59,15 @@ class _PartiesScreenState extends State<PartiesScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: context.appColors.screenBackground,
         appBar: AppBar(
-          title: const Text(
-            'Parties',
-            style: TextStyle(
+          title: Text(
+            AppStrings.parties,
+            style: context.text.titleLarge?.copyWith(
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1A1A2E),
             ),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: context.colors.surface,
           elevation: 0,
           bottom: const TabBar(
             tabs: [
@@ -103,10 +102,10 @@ class _PartiesScreenState extends State<PartiesScreen> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: _createParty,
-          backgroundColor: const Color(0xFF4D96FF),
+          backgroundColor: context.appColors.accent,
           foregroundColor: Colors.white,
           icon: const Icon(Icons.celebration_outlined),
-          label: const Text('Create Party'),
+          label: const Text(AppStrings.createParty),
         ),
       ),
     );
@@ -145,26 +144,32 @@ class _PartyListView extends StatelessWidget {
       debugPrint('$listName error: $error');
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppDimens.lg),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.red),
-              const SizedBox(height: 16),
-              const Text(
-                'Failed to load parties',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Icon(
+                Icons.error_outline,
+                size: AppDimens.iconXl,
+                color: context.appColors.danger,
               ),
-              const SizedBox(height: 8),
+              const Gap(AppDimens.md),
+              Text(
+                'Failed to load parties',
+                style: context.text.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const Gap(AppDimens.sm),
               Text(
                 error.toString(),
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
+                style: context.text.bodySmall
+                    ?.copyWith(color: context.appColors.mutedText),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
+              const Gap(AppDimens.md),
               ElevatedButton(
                 onPressed: onRefresh,
-                child: const Text('Try Again'),
+                child: const Text(AppStrings.tryAgain),
               ),
             ],
           ),
@@ -179,7 +184,7 @@ class _PartyListView extends StatelessWidget {
         emoji: '🎉',
         title: emptyTitle,
         subtitle: emptySubtitle,
-        actionLabel: 'Create Party',
+        actionLabel: AppStrings.createParty,
         onAction: () => onCreateParty(),
       );
     }
@@ -198,11 +203,11 @@ class _PartyListView extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             onTap: () => context.push('/party/${party.joinCode}'),
             child: Ink(
-              padding: const EdgeInsets.all(14),
+              padding: const EdgeInsets.all(AppDimens.space14),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFFE3E5E8)),
+                color: context.appColors.cardBackground,
+                borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+                border: Border.all(color: context.appColors.cardBorder),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,33 +224,33 @@ class _PartyListView extends StatelessWidget {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
+                          horizontal: AppDimens.space10,
+                          vertical: AppDimens.space4,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFE8F1FF),
-                          borderRadius: BorderRadius.circular(999),
+                          color: context.appColors.accent.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(AppDimens.radiusPill),
                         ),
                         child: Text(
                           party.joinCode,
-                          style: const TextStyle(
-                            color: Color(0xFF1A1A2E),
+                          style: TextStyle(
+                            color: context.appColors.accent,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const Gap(AppDimens.sm),
                   Text('Host: ${party.hostName}'),
-                  const SizedBox(height: 4),
+                  const Gap(AppDimens.space4),
                   Text('Members: ${party.memberCount}'),
                   if (party.description != null &&
                       party.description!.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    const Gap(AppDimens.sm),
                     Text(
                       party.description!,
-                      style: Theme.of(context).textTheme.bodyMedium,
+                      style: context.text.bodyMedium,
                     ),
                   ],
                 ],

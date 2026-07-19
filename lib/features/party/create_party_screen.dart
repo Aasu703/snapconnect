@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:snapconnect/common/common.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -90,10 +91,9 @@ class _CreatePartyScreenState extends State<CreatePartyScreen> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Could not create party. Please try again.'),
-        ),
+      AppSnackBar.showError(
+        context,
+        'Could not create party. Please try again.',
       );
     } finally {
       if (mounted) {

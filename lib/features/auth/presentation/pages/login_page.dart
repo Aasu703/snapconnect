@@ -3,7 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:snapconnect/core/constants/app_colors.dart';
+import 'package:snapconnect/common/common.dart';
 import '../BloC/auth_cubit.dart';
 import '../BloC/auth_state.dart';
 
@@ -45,21 +45,13 @@ class _LoginPageState extends State<LoginPage> {
           if (state is Authenticated) {
             context.go('/');
           } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                behavior: SnackBarBehavior.floating,
-                backgroundColor: AppColors.danger,
-              ),
-            );
+            AppSnackBar.showError(context, state.message);
           }
         },
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          decoration: const BoxDecoration(
-            color: AppColors.background,
-          ),
+          color: context.appColors.screenBackground,
           child: SafeArea(
             child: SingleChildScrollView(
               child: Column(
@@ -76,10 +68,10 @@ class _LoginPageState extends State<LoginPage> {
                     margin: const EdgeInsets.symmetric(horizontal: 20),
                     padding: const EdgeInsets.all(28),
                     decoration: BoxDecoration(
-                      color: AppColors.surface,
+                      color: context.appColors.cardBackground,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.outlineVariant,
+                        color: context.appColors.cardBorder,
                       ),
                       boxShadow: [
                         BoxShadow(
@@ -96,29 +88,27 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           Text(
                             'Welcome back',
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
-                                ?.copyWith(
-                                  color: AppColors.onSurface,
-                                  fontWeight: FontWeight.w800,
-                                ),
+                            style: context.text.headlineMedium?.copyWith(
+                              color: context.colors.onSurface,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                           const Gap(6),
                           Text(
                             'Sign in to continue sharing memories',
                             style: TextStyle(
-                              color: AppColors.onSurfaceVariant,
+                              color: context.appColors.mutedText,
                               fontSize: 14,
                             ),
                           ),
                           const Gap(28),
                           // Email field
-                          _StyledTextField(
+                          AppTextField(
                             controller: _emailController,
                             label: 'Email',
                             hint: 'you@example.com',
-                            icon: Icons.email_outlined,
+                            prefixIcon: Icon(Icons.email_outlined,
+                                size: 20, color: context.appColors.mutedText),
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) {
@@ -132,18 +122,19 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           const Gap(16),
                           // Password field
-                          _StyledTextField(
+                          AppTextField(
                             controller: _passwordController,
                             label: 'Password',
                             hint: '••••••••',
-                            icon: Icons.lock_outline_rounded,
+                            prefixIcon: Icon(Icons.lock_outline_rounded,
+                                size: 20, color: context.appColors.mutedText),
                             obscureText: _obscurePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
                                     ? Icons.visibility_off_outlined
                                     : Icons.visibility_outlined,
-                                  color: AppColors.onSurfaceVariant,
+                                  color: context.appColors.mutedText,
                                   size: 20,
                                 ),
                               onPressed: () => setState(
@@ -191,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               Expanded(
                                 child: Divider(
-                                  color: AppColors.outlineVariant,
+                                  color: context.appColors.cardBorder,
                                 ),
                               ),
                               Padding(
@@ -200,14 +191,14 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Text(
                                   'or continue with',
                                   style: TextStyle(
-                                    color: AppColors.onSurfaceVariant,
+                                    color: context.appColors.mutedText,
                                     fontSize: 12,
                                   ),
                                 ),
                               ),
                               Expanded(
                                 child: Divider(
-                                  color: AppColors.outlineVariant,
+                                  color: context.appColors.cardBorder,
                                 ),
                               ),
                             ],
@@ -246,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
                       Text(
                         "Don't have an account? ",
                         style: TextStyle(
-                          color: AppColors.onSurfaceVariant,
+                          color: context.appColors.mutedText,
                           fontSize: 14,
                         ),
                       ),
@@ -305,99 +296,14 @@ class _LoginHeader extends StatelessWidget {
           const Gap(16),
           Text(
             'SnapConnect',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.onSurface,
+            style: context.text.titleLarge?.copyWith(
+                  color: context.colors.onSurface,
                   fontWeight: FontWeight.w700,
                   letterSpacing: -0.5,
                 ),
           ),
         ],
       ),
-    );
-  }
-}
-
-class _StyledTextField extends StatelessWidget {
-  const _StyledTextField({
-    required this.controller,
-    required this.label,
-    required this.hint,
-    required this.icon,
-    this.keyboardType,
-    this.obscureText = false,
-    this.suffixIcon,
-    this.validator,
-  });
-
-  final TextEditingController controller;
-  final String label;
-  final String hint;
-  final IconData icon;
-  final TextInputType? keyboardType;
-  final bool obscureText;
-  final Widget? suffixIcon;
-  final String? Function(String?)? validator;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: AppColors.onSurfaceVariant,
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const Gap(8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          validator: validator,
-          style: const TextStyle(color: AppColors.onSurface, fontSize: 15),
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(
-              color: AppColors.outlineVariant,
-              fontSize: 14,
-            ),
-            prefixIcon: Icon(icon,
-                size: 20, color: AppColors.onSurfaceVariant),
-            suffixIcon: suffixIcon,
-            filled: true,
-            fillColor: AppColors.surfaceContainerLowest,
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                  color: AppColors.outlineVariant),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                  color: AppColors.outlineVariant),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: AppColors.secondary, width: 2),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.danger),
-            ),
-            focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: AppColors.danger, width: 2),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
@@ -472,30 +378,25 @@ class _SocialButton extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.outlineVariant),
-        color: AppColors.surfaceContainerLowest,
+        border: Border.all(color: context.appColors.cardBorder),
+        color: context.appColors.cardBackground,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Coming soon!'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            AppSnackBar.showInfo(context, AppStrings.comingSoon);
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: AppColors.onSurfaceVariant, size: 22),
+              Icon(icon, color: context.appColors.mutedText, size: 22),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: TextStyle(
-                  color: AppColors.onSurfaceVariant,
+                  color: context.appColors.mutedText,
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                 ),

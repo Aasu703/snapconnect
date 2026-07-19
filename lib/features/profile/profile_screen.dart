@@ -4,10 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
+import 'package:snapconnect/core/blocs/albums_bloc.dart';
+import 'package:snapconnect/features/auth/presentation/BloC/auth_cubit.dart';
 import 'package:snapconnect/features/profile/profile_controller.dart';
 import 'package:snapconnect/features/onboarding/onboarding_controller.dart';
 import 'package:snapconnect/core/utils/validators.dart';
-import 'package:snapconnect/widgets/avatar_widget.dart';
+import 'package:snapconnect/common/common.dart';
+import 'package:snapconnect/widgets/album_card.dart';
 
 /// Profile screen that always renders a visible state.
 class ProfileScreen extends StatefulWidget {
@@ -30,6 +33,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (user != null) {
       _nameController.text = user.name;
       _emailController.text = user.email ?? '';
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          context.read<AlbumsBloc>().add(FetchUserAlbums(user.id));
+        }
+      });
     }
   }
 
@@ -52,21 +60,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Edit name'),
-          content: TextFormField(
+          title: const Text(AppStrings.editName),
+          content: AppTextField(
             controller: controller,
             autofocus: true,
             validator: Validators.validateName,
-            decoration: const InputDecoration(hintText: 'Your display name'),
+            hint: AppStrings.displayNameHint,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text(AppStrings.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: const Text('Save'),
+              child: const Text(AppStrings.save),
             ),
           ],
         );
@@ -95,21 +103,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Add email'),
-          content: TextFormField(
+          title: const Text(AppStrings.addEmail),
+          content: AppTextField(
             controller: controller,
             autofocus: true,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(hintText: 'you@example.com'),
+            hint: AppStrings.emailHint,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text(AppStrings.cancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(context, controller.text),
-              child: const Text('Save'),
+              child: const Text(AppStrings.save),
             ),
           ],
         );
@@ -136,10 +144,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       final message =
-          nameError ?? emailError ?? 'Please fix the highlighted fields.';
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+          nameError ?? emailError ?? AppStrings.fixHighlightedFields;
+      AppSnackBar.showError(context, message);
       return;
     }
 
@@ -157,9 +163,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       debugPrint('ProfileScreen identity error: $e');
       debugPrint('ProfileScreen identity stack: $stack');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not set up your profile.')),
-        );
+        AppSnackBar.showError(context, AppStrings.profileSetupFailed);
       }
     } finally {
       if (mounted) {
@@ -169,7 +173,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _logout() async {
-    await context.read<SessionCubit>().clear();
+    // Clears both identity stores: SessionCubit (the party/upload identity)
+    // and AuthCubit (the secure-storage auth_token checked on every app
+    // boot) — otherwise a stale token lets checkAuth() silently sign the
+    // user back in on next launch.
+    final sessionCubit = context.read<SessionCubit>();
+    final authCubit = context.read<AuthCubit>();
+    await sessionCubit.clear();
+    await authCubit.logout();
     debugPrint('ProfileScreen: user logged out');
     if (mounted) {
       context.go('/');
@@ -184,66 +195,61 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (user == null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
-        appBar: AppBar(title: const Text('Profile')),
+        backgroundColor: context.appColors.screenBackground,
+        appBar: AppBar(title: const Text(AppStrings.profile)),
         body: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(AppDimens.lg),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
+              constraints: const BoxConstraints(maxWidth: AppDimens.maxFormWidth),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.account_circle_outlined,
-                    size: 72,
-                    color: Color(0xFF4D96FF),
+                    size: AppDimens.iconHero,
+                    color: context.appColors.accent,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Set up your profile',
-                    style: TextStyle(
-                      fontSize: 22,
+                  const Gap(AppDimens.md),
+                  Text(
+                    AppStrings.setUpProfile,
+                    style: context.text.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1A2E),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Add your name so albums, parties, and uploads show who you are.',
+                  const Gap(AppDimens.sm),
+                  Text(
+                    AppStrings.setUpProfileSubtitle,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey),
+                    style: context.text.bodyMedium
+                        ?.copyWith(color: context.appColors.mutedText),
                   ),
-                  const SizedBox(height: 24),
-                  TextFormField(
+                  const Gap(AppDimens.lg),
+                  AppTextField(
                     controller: _nameController,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      hintText: 'Alex Johnson',
-                    ),
+                    label: AppStrings.name,
+                    hint: 'Alex Johnson',
                   ),
-                  const SizedBox(height: 12),
-                  TextFormField(
+                  const Gap(AppDimens.space12),
+                  AppTextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Email (optional)',
-                      hintText: 'alex@example.com',
-                    ),
+                    label: AppStrings.emailOptional,
+                    hint: 'alex@example.com',
                   ),
-                  const SizedBox(height: 18),
+                  const Gap(AppDimens.space18),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
                       onPressed: _isSubmitting ? null : _saveIdentity,
                       child: _isSubmitting
                           ? const SizedBox(
-                              width: 18,
-                              height: 18,
+                              width: AppDimens.iconSm,
+                              height: AppDimens.iconSm,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : const Text('Save Profile'),
+                          : const Text(AppStrings.saveProfile),
                     ),
                   ),
                 ],
@@ -255,10 +261,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(title: const Text('Profile')),
+      backgroundColor: context.appColors.screenBackground,
+      appBar: AppBar(title: const Text(AppStrings.profile)),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(AppDimens.screenPadding),
         children: [
           Center(
             child: Column(
@@ -268,60 +274,112 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   colorHex: user.avatarColor,
                   size: 84,
                 ),
-                const Gap(12),
+                const Gap(AppDimens.space12),
+                Text(user.name, style: context.text.headlineSmall),
+                const Gap(AppDimens.space6),
                 Text(
-                  user.name,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const Gap(6),
-                Text(
-                  user.email ?? 'No email set',
-                  style: Theme.of(context).textTheme.bodyMedium,
+                  user.email ?? AppStrings.noEmailSet,
+                  style: context.text.bodyMedium,
                 ),
               ],
             ),
           ),
-          const Gap(18),
+          const Gap(AppDimens.space18),
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(AppDimens.space14),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: const Color(0xFFE3E5E8)),
+              color: context.appColors.cardBackground,
+              borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+              border: Border.all(color: context.appColors.cardBorder),
             ),
-            child: const Text(
+            child: Text(
               'Profile is available instantly from local session data.\n'
               'Stats sync can be added separately if needed.',
-              style: TextStyle(color: Colors.black87),
+              style: context.text.bodyMedium
+                  ?.copyWith(color: context.colors.onSurface),
             ),
           ),
-          const Gap(20),
+          const Gap(AppDimens.space20),
+          Text('My Albums', style: context.text.titleMedium),
+          const Gap(AppDimens.space12),
+          _MyAlbumsSection(),
+          const Gap(AppDimens.space20),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.edit_outlined),
-            title: const Text('Edit name'),
+            title: const Text(AppStrings.editName),
             onTap: _editName,
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
             leading: const Icon(Icons.alternate_email),
-            title: Text(user.email == null ? 'Add email' : 'Update email'),
+            title: Text(
+              user.email == null ? AppStrings.addEmail : AppStrings.updateEmail,
+            ),
             onTap: _addEmail,
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
             value: themeMode == ThemeMode.dark,
             onChanged: (_) => context.read<ThemeModeCubit>().toggle(),
-            title: const Text('Dark mode'),
+            title: const Text(AppStrings.darkMode),
             secondary: const Icon(Icons.dark_mode_outlined),
           ),
-          const Gap(8),
+          const Gap(AppDimens.space8),
           OutlinedButton.icon(
             onPressed: _logout,
             icon: const Icon(Icons.logout),
-            label: const Text('Logout'),
+            label: const Text(AppStrings.logout),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Shows the current user's own albums (public and private).
+class _MyAlbumsSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final albumsState = context.watch<AlbumsBloc>().state;
+
+    if (albumsState.isLoadingUserAlbums && albumsState.userAlbums == null) {
+      return const SizedBox(
+        height: 160,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (albumsState.userAlbumsError != null &&
+        (albumsState.userAlbums == null || albumsState.userAlbums!.isEmpty)) {
+      return Text(
+        'Could not load your albums.',
+        style: context.text.bodyMedium
+            ?.copyWith(color: context.appColors.mutedText),
+      );
+    }
+
+    final userAlbums = albumsState.userAlbums ?? [];
+    if (userAlbums.isEmpty) {
+      return Text(
+        'You haven\'t created any albums yet.',
+        style: context.text.bodyMedium
+            ?.copyWith(color: context.appColors.mutedText),
+      );
+    }
+
+    return SizedBox(
+      height: 160,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: userAlbums.length,
+        separatorBuilder: (_, _) => const Gap(AppDimens.space12),
+        itemBuilder: (context, index) {
+          return SizedBox(
+            width: 140,
+            child: AlbumCard(album: userAlbums[index], index: index, tall: false),
+          );
+        },
       ),
     );
   }

@@ -75,23 +75,42 @@ class AlbumCard extends StatelessWidget {
                       Positioned(
                         right: 10,
                         top: 10,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withValues(alpha: 0.36),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            '${album.photoCount}',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
+                        child: Row(
+                          children: [
+                            if (album.isPrivate) ...[
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.36),
+                                  shape: BoxShape.circle,
                                 ),
-                          ),
+                                child: const Icon(
+                                  Icons.lock_rounded,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.36),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(
+                                '${album.photoCount}',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       Positioned(

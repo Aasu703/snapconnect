@@ -1,3 +1,5 @@
+import 'package:snapconnect/core/api/api.endpoints.dart';
+
 /// Photo record model for one uploaded image.
 class PhotoModel {
   const PhotoModel({
@@ -23,7 +25,7 @@ class PhotoModel {
     return PhotoModel(
       id: (json['id'] ?? '').toString(),
       albumId: (json['album_id'] ?? '').toString(),
-      url: (json['url'] ?? '').toString(),
+      url: ApiEndpoints.resolveMediaUrl((json['url'] ?? '').toString()),
       title: json['title']?.toString(),
       uploadedBy: (json['uploaded_by'] ?? '').toString(),
       uploadedByName: (json['uploaded_by_name'] ?? 'Guest').toString(),

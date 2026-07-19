@@ -62,6 +62,10 @@ final class AppColors {
   static const darkTextPrimary = Color(0xFFF3F4F6);
   static const darkTextSecondary = Color(0xFF9CA3AF);
 
+  /// Slightly lighter than [darkSurface] so filled inputs stand out against
+  /// dark cards/scaffolds.
+  static const darkInputFill = Color(0xFF1E293B);
+
   static const avatarColors = <Color>[
     Color(0xFFFF6B6B),
     Color(0xFFFF8E53),
@@ -77,11 +81,24 @@ final class AppColors {
     primary,
   ];
 
+  /// Deep navy → blue brand gradient used on always-dark branded surfaces
+  /// (splash, onboarding, guest landing, QR share). Intentionally fixed in
+  /// both light and dark themes — these screens are designed dark-on-gradient.
+  static const brandGradient = [
+    Color(0xFF1A1A2E),
+    Color(0xFF16213E),
+    Color(0xFF0F3460),
+  ];
+
   // Gradients replaced with solid primary/secondary for minimalist aesthetic
   static const gradientPrimary = [primary, secondary];
   static const gradientHost = [secondary, secondaryContainer];
   static const gradientGuest = [tertiaryContainer, onTertiaryContainer];
   static const gradientDark = [primary, primaryContainer];
+
+  /// Vivid purple used as a gradient companion accent on the dark "glass"
+  /// screens (host dashboard, event album, guest landing, upload success).
+  static const accentPurple = Color(0xFF6C63FF);
 
   static const accent = secondary;
   static const hostAccent = secondary;

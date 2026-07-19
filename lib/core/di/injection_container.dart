@@ -58,7 +58,8 @@ Future<void> initDependencies() async {
 
   // Data layer
   sl.registerLazySingleton<IAuthRepository>(
-    () => AuthRepositoryImpl(dio: sl<Dio>(), storage: sl<FlutterSecureStorage>()),
+    () =>
+        AuthRepositoryImpl(dio: sl<Dio>(), storage: sl<FlutterSecureStorage>()),
   );
 
   // Domain layer — use cases
@@ -88,7 +89,7 @@ Future<void> initDependencies() async {
   // Global singletons for app-wide state
   sl.registerLazySingleton<SessionCubit>(() => SessionCubit());
   sl.registerLazySingleton<ThemeModeCubit>(() => ThemeModeCubit());
-  
+
   sl.registerFactory<UploadBloc>(() => UploadBloc(sl<PhotosController>()));
   sl.registerFactory<ProfileCubit>(() => ProfileCubit(sl<ProfileController>()));
   sl.registerFactory<PartyBloc>(() => PartyBloc(sl<PartyController>()));

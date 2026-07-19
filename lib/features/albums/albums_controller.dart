@@ -18,6 +18,18 @@ class AlbumsController {
     return const <AlbumModel>[];
   }
 
+  /// Fetches all albums owned by a user (public and private).
+  Future<List<AlbumModel>> fetchUserAlbums(String userId) async {
+    try {
+      final response = await ApiClient().get(ApiEndpoints.userAlbums(userId));
+      if (response.statusCode == 200) {
+        final data = response.data['data'] as List;
+        return data.map((e) => AlbumModel.fromJson(e)).toList();
+      }
+    } catch (_) {}
+    return const <AlbumModel>[];
+  }
+
   /// Fetches one album by ID.
   Future<AlbumModel?> fetchAlbumById(String albumId) async {
     try {
@@ -45,6 +57,7 @@ class AlbumsController {
   Future<AlbumModel> createAlbum({
     required String name,
     required UserModel user,
+    bool isPrivate = false,
   }) async {
     final response = await ApiClient().post(
       ApiEndpoints.albums,
@@ -52,6 +65,7 @@ class AlbumsController {
         'fullName': name.trim(),
         'created_by': user.id,
         'created_by_name': user.name,
+        'is_private': isPrivate,
       },
     );
     return AlbumModel.fromJson(response.data['data']);
