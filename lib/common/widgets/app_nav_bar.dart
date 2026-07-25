@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:snapconnect/common/constants/app_dimens.dart';
 import 'package:snapconnect/common/theme/context_extensions.dart';
 
-/// Minimal custom bottom navigation with a distinct upload action.
+/// Minimal custom bottom navigation: five equal-weight icon+label tabs.
 ///
-/// The center upload button is intentionally emphasized (Von Restorff Effect +
-/// Fitts's Law). Colors are theme-aware so the bar reads correctly in dark mode.
+/// Colors are theme-aware so the bar reads correctly in dark mode.
 class AppNavBar extends StatelessWidget {
   const AppNavBar({
     super.key,
@@ -76,42 +75,13 @@ class AppNavBar extends StatelessWidget {
                     currentIndex: currentIndex,
                     onTap: onTap,
                   ),
-                  Expanded(
-                    child: Center(
-                      child: InkWell(
-                        onTap: () => onTap(3),
-                        borderRadius: BorderRadius.circular(AppDimens.radiusLg),
-                        child: AnimatedContainer(
-                          duration: AppDimens.durationFast,
-                          curve: Curves.easeOut,
-                          width: 48,
-                          height: 42,
-                          transform: Matrix4.translationValues(
-                            0,
-                            currentIndex == 3 ? -2 : 0,
-                            0,
-                          ),
-                          decoration: BoxDecoration(
-                            color: accent,
-                            borderRadius:
-                                BorderRadius.circular(AppDimens.radiusMd),
-                            boxShadow: [
-                              BoxShadow(
-                                color: accent.withValues(alpha: 0.28),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          alignment: Alignment.center,
-                          child: Icon(
-                            Icons.add_a_photo_rounded,
-                            color: context.colors.onPrimary,
-                            size: AppDimens.iconMd,
-                          ),
-                        ),
-                      ),
-                    ),
+                  _NavItem(
+                    icon: Icons.add_circle_outline_rounded,
+                    activeIcon: Icons.add_circle_rounded,
+                    label: 'Upload',
+                    index: 3,
+                    currentIndex: currentIndex,
+                    onTap: onTap,
                   ),
                   _NavItem(
                     icon: Icons.person_outline_rounded,
