@@ -154,9 +154,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       final user = await sl<OnboardingController>().createOrRestoreUser(
-            name: _nameController.text,
-            email: _emailController.text,
-          );
+        name: _nameController.text,
+        email: _emailController.text,
+      );
       if (!mounted) return;
       await context.read<SessionCubit>().setUser(user);
       debugPrint('ProfileScreen: identity created/restored for ${user.id}');
@@ -202,7 +202,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppDimens.lg),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppDimens.maxFormWidth),
+              constraints: const BoxConstraints(
+                maxWidth: AppDimens.maxFormWidth,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -222,8 +224,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Text(
                     AppStrings.setUpProfileSubtitle,
                     textAlign: TextAlign.center,
-                    style: context.text.bodyMedium
-                        ?.copyWith(color: context.appColors.mutedText),
+                    style: context.text.bodyMedium?.copyWith(
+                      color: context.appColors.mutedText,
+                    ),
                   ),
                   const Gap(AppDimens.lg),
                   AppTextField(
@@ -296,8 +299,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Text(
               'Profile is available instantly from local session data.\n'
               'Stats sync can be added separately if needed.',
-              style: context.text.bodyMedium
-                  ?.copyWith(color: context.colors.onSurface),
+              style: context.text.bodyMedium?.copyWith(
+                color: context.colors.onSurface,
+              ),
             ),
           ),
           const Gap(AppDimens.space20),
@@ -371,8 +375,9 @@ class _MyAlbumsSection extends StatelessWidget {
         (albumsState.userAlbums == null || albumsState.userAlbums!.isEmpty)) {
       return Text(
         'Could not load your albums.',
-        style: context.text.bodyMedium
-            ?.copyWith(color: context.appColors.mutedText),
+        style: context.text.bodyMedium?.copyWith(
+          color: context.appColors.mutedText,
+        ),
       );
     }
 
@@ -380,13 +385,16 @@ class _MyAlbumsSection extends StatelessWidget {
     if (userAlbums.isEmpty) {
       return Text(
         'You haven\'t created any albums yet.',
-        style: context.text.bodyMedium
-            ?.copyWith(color: context.appColors.mutedText),
+        style: context.text.bodyMedium?.copyWith(
+          color: context.appColors.mutedText,
+        ),
       );
     }
 
     return SizedBox(
-      height: 160,
+      // Image (160) + name/creator caption the pin-style AlbumCard renders
+      // below the cover photo.
+      height: 224,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: userAlbums.length,
@@ -394,7 +402,11 @@ class _MyAlbumsSection extends StatelessWidget {
         itemBuilder: (context, index) {
           return SizedBox(
             width: 140,
-            child: AlbumCard(album: userAlbums[index], index: index, tall: false),
+            child: AlbumCard(
+              album: userAlbums[index],
+              index: index,
+              tall: false,
+            ),
           );
         },
       ),
