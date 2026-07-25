@@ -45,6 +45,11 @@ final class AppStrings {
   static const String emailHint = 'you@example.com';
   static const String profileSetupFailed = 'Could not set up your profile.';
 
+  // --- Legal ---
+  static const String legal = 'Legal';
+  static const String termsOfService = 'Terms of Service';
+  static const String privacyPolicy = 'Privacy Policy';
+
   // --- Albums / parties / events ---
   static const String createAlbum = 'Create Album';
   static const String createParty = 'Create Party';

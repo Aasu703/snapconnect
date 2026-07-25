@@ -10,6 +10,7 @@ import 'package:snapconnect/features/profile/profile_controller.dart';
 import 'package:snapconnect/features/onboarding/onboarding_controller.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 import 'package:snapconnect/common/common.dart';
+import 'package:snapconnect/navigation/route_paths.dart';
 import 'package:snapconnect/widgets/album_card.dart';
 
 /// Profile screen that always renders a visible state.
@@ -324,6 +325,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             onChanged: (_) => context.read<ThemeModeCubit>().toggle(),
             title: const Text(AppStrings.darkMode),
             secondary: const Icon(Icons.dark_mode_outlined),
+          ),
+          const Gap(AppDimens.space12),
+          Text(AppStrings.legal, style: context.text.titleMedium),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.description_outlined),
+            title: const Text(AppStrings.termsOfService),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(RoutePaths.termsOfService),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text(AppStrings.privacyPolicy),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(RoutePaths.privacyPolicy),
           ),
           const Gap(AppDimens.space8),
           OutlinedButton.icon(
