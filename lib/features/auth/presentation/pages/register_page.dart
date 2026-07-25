@@ -6,6 +6,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/utils/validators.dart';
+import 'package:snapconnect/navigation/route_paths.dart';
 import '../BloC/auth_cubit.dart';
 import '../BloC/auth_state.dart';
 import '../widgets/signup_chrome.dart';
@@ -448,9 +449,6 @@ class _TermsNotice extends StatelessWidget {
       fontWeight: FontWeight.w600,
     );
 
-    void showComingSoon() =>
-        AppSnackBar.showInfo(context, AppStrings.comingSoon);
-
     return Text.rich(
       TextSpan(
         style: style,
@@ -459,13 +457,15 @@ class _TermsNotice extends StatelessWidget {
           TextSpan(
             text: 'Terms of Service',
             style: linkStyle,
-            recognizer: TapGestureRecognizer()..onTap = showComingSoon,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => context.push(RoutePaths.termsOfService),
           ),
           const TextSpan(text: ' and acknowledge our '),
           TextSpan(
             text: 'Privacy Policy',
             style: linkStyle,
-            recognizer: TapGestureRecognizer()..onTap = showComingSoon,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => context.push(RoutePaths.privacyPolicy),
           ),
           const TextSpan(text: '.'),
         ],

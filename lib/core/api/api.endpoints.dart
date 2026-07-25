@@ -12,7 +12,14 @@ class ApiEndpoints {
 
   // Base URL configuration
   static String get _host {
-    if (isPhysicalDevice) return _ipAddress;
+    if (isPhysicalDevice) {
+      // Android over USB: tunnel via `adb reverse tcp:5050 tcp:5050`
+      // instead of a LAN IP — Wi-Fi network/AP isolation (e.g. a phone
+      // hotspot) can silently block phone <-> dev-machine traffic even
+      // when both are "on the same network".
+      if (Platform.isAndroid) return 'localhost';
+      return _ipAddress;
+    }
     if (kIsWeb || Platform.isIOS) return 'localhost';
     if (Platform.isAndroid) return '10.0.2.2';
     return 'localhost';

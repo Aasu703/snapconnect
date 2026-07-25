@@ -7,6 +7,7 @@ import 'package:snapconnect/features/auth/presentation/BloC/auth_state.dart';
 import 'package:snapconnect/navigation/app_shell_scaffold.dart';
 import 'package:snapconnect/navigation/route_paths.dart';
 import 'package:snapconnect/navigation/routes/guest_routes.dart';
+import 'package:snapconnect/navigation/routes/legal_routes.dart';
 import 'package:snapconnect/navigation/routes/public_routes.dart';
 import 'package:snapconnect/navigation/routes/shell_routes.dart';
 import 'package:talker_flutter/talker_flutter.dart';
@@ -21,6 +22,7 @@ GoRouter buildAppRouter(BuildContext context) {
     routes: [
       ...publicRoutes,
       ...guestRoutes,
+      ...legalRoutes,
       ShellRoute(
         builder: (context, state, child) {
           return AppShellScaffold(location: state.matchedLocation, child: child);
@@ -38,6 +40,11 @@ String? _redirect(BuildContext context, GoRouterState state) {
 
   // Guest routes don't require auth.
   if (state.matchedLocation.startsWith('/guest/')) {
+    return null;
+  }
+
+  // Terms of Service / Privacy Policy are reachable pre- and post-auth.
+  if (state.matchedLocation.startsWith('/legal/')) {
     return null;
   }
 

@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
 import 'package:snapconnect/features/auth/data/repositories/auth_repository.dart';
 import 'package:snapconnect/features/auth/domain/repositories/auth_repository.dart';
 import 'package:snapconnect/features/auth/domain/usecases/check_auth_usecase.dart';
@@ -37,7 +38,13 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<AppLogger>(() => TalkerLoggerImpl(sl<Talker>()));
 
   sl.registerLazySingleton<Dio>(() {
-    final dio = Dio();
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: ApiEndpoints.baseUrl,
+        connectTimeout: ApiEndpoints.connectionTimeout,
+        receiveTimeout: ApiEndpoints.receiveTimeout,
+      ),
+    );
     dio.interceptors.add(
       TalkerDioLogger(
         talker: sl<Talker>(),

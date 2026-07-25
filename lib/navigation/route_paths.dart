@@ -40,6 +40,10 @@ final class RoutePaths {
   static const String profile = '/profile';
   static const String photoViewer = '/photo/:id';
 
+  // --- Legal ---
+  static const String termsOfService = '/legal/terms';
+  static const String privacyPolicy = '/legal/privacy';
+
   static String albumDetailFor(String id) => '/album/$id';
   static String eventQrFor(String joinCode) => '/events/$joinCode/qr';
   static String eventAlbumFor(String joinCode) => '/events/$joinCode/album';
