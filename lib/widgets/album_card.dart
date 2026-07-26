@@ -4,9 +4,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/models/album_model.dart';
+import 'package:snapconnect/widgets/avatar_widget.dart';
 import 'package:shimmer/shimmer.dart';
 
-/// Card widget used in album grids.
+/// Pin-style card used in the Home masonry grid: an unobstructed cover image
+/// with a small top-left count/privacy pill, and the album's name + creator
+/// as a caption below the image — mirroring a Pinterest pin rather than
+/// overlaying text directly on the photo.
 class AlbumCard extends StatelessWidget {
   const AlbumCard({
     super.key,
@@ -36,102 +40,74 @@ class AlbumCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final disableAnimations = MediaQuery.of(context).disableAnimations;
     final cardHeight = tall ? 220.0 : 160.0;
+    final theme = Theme.of(context);
 
-    return TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 120),
-          tween: Tween<double>(begin: 1.0, end: 1.0),
-          builder: (context, scale, child) {
-            return Transform.scale(scale: scale, child: child);
-          },
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _handleTap(context),
-                onHighlightChanged: (_) {},
-                splashColor: Colors.white.withValues(alpha: 0.14),
-                child: SizedBox(
-                  height: cardHeight,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      _buildBackground(context),
-                      Positioned.fill(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withValues(alpha: 0.65),
-                              ],
-                              stops: const [0.55, 1.0],
-                            ),
+    return Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _handleTap(context),
+            borderRadius: BorderRadius.circular(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: SizedBox(
+                    height: cardHeight,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _buildBackground(context),
+                        Positioned(
+                          left: 8,
+                          top: 8,
+                          child: _CountPill(
+                            count: album.photoCount,
+                            isPrivate: album.isPrivate,
                           ),
                         ),
-                      ),
-                      Positioned(
-                        right: 10,
-                        top: 10,
-                        child: Row(
-                          children: [
-                            if (album.isPrivate) ...[
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.36),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.lock_rounded,
-                                  size: 12,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                            ],
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.36),
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                '${album.photoCount}',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 10,
-                        left: 10,
-                        right: 10,
-                        child: Text(
-                          album.fullName.isEmpty ? 'Untitled' : album.fullName,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    AvatarWidget(
+                      name: album.createdByName ?? album.fullName,
+                      size: 22,
+                      fontSize: 10,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        album.fullName.isEmpty ? 'Untitled' : album.fullName,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                if (album.createdByName != null &&
+                    album.createdByName!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 28),
+                    child: Text(
+                      album.createdByName!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
         )
@@ -187,6 +163,46 @@ class AlbumCard extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Small pill badge in a pin's top-left corner showing the photo count and,
+/// when the album is private, a lock glyph — mirroring the collection-count
+/// chip Pinterest overlays on multi-photo pins.
+class _CountPill extends StatelessWidget {
+  const _CountPill({required this.count, required this.isPrivate});
+
+  final int count;
+  final bool isPrivate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isPrivate ? Icons.lock_rounded : Icons.collections_rounded,
+            size: 12,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '$count',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              height: 1,
+            ),
+          ),
+        ],
       ),
     );
   }

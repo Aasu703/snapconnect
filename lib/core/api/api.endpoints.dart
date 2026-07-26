@@ -86,4 +86,8 @@ class ApiEndpoints {
   static const String photoUpload = 'photos/upload';
   static String albumPhotos(String albumId) => 'photos/album/$albumId';
   static String photo(String id) => 'photos/$id';
+
+  // -------------------------- REACTIONS -------------------------
+  static const String reactionToggle = 'reactions/toggle';
+  static String reactionsByPhoto(String photoId) => 'reactions/photo/$photoId';
 }

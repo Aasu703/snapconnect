@@ -1,5 +1,6 @@
-import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:snapconnect/core/api/api.client.dart';
+import 'package:snapconnect/core/api/api.endpoints.dart';
 import 'package:snapconnect/core/models/reaction_model.dart';
 import 'package:snapconnect/core/models/user_model.dart';
 import 'package:snapconnect/core/logger/app_logger.dart';
@@ -47,38 +48,24 @@ class ReactionsCubit extends Cubit<ReactionState> {
   }
 
   final String photoId;
+  final ApiClient _api = ApiClient();
 
   Future<void> load(UserModel? user) async {
     emit(state.copyWith(isLoading: true));
     sl<AppLogger>().info('Loading reactions for photo $photoId');
 
-    // Backend doesn't have reactions endpoint yet. We can mock it for now.
-    final List<ReactionModel> reactions = [];
-
-    final counts = <String, int>{};
-    final namesByEmoji = <String, List<String>>{};
-    String? current;
-
-    for (final reaction in reactions) {
-      counts[reaction.emoji] = (counts[reaction.emoji] ?? 0) + 1;
-      namesByEmoji
-          .putIfAbsent(reaction.emoji, () => <String>[])
-          .add(reaction.userName);
-      if (user != null && reaction.userId == user.id) {
-        current = reaction.emoji;
-      }
+    try {
+      final response = await _api.get(ApiEndpoints.reactionsByPhoto(photoId));
+      final raw = (response.data['data'] as List<dynamic>? ?? []);
+      final reactions = raw
+          .map((json) => ReactionModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+      emit(_stateFromReactions(reactions, user));
+      sl<AppLogger>().good('Reactions loaded for photo $photoId');
+    } catch (error) {
+      sl<AppLogger>().error('Failed to load reactions for photo $photoId', error);
+      emit(state.copyWith(isLoading: false));
     }
-
-    emit(ReactionState(
-      counts: counts,
-      currentEmoji: current,
-      tooltipByEmoji: {
-        for (final entry in namesByEmoji.entries)
-          entry.key: _buildTooltip(entry.value),
-      },
-      isLoading: false,
-    ));
-    sl<AppLogger>().good('Reactions loaded for photo $photoId');
   }
 
   Future<void> toggle(String emoji, UserModel? user) async {
@@ -93,6 +80,7 @@ class ReactionsCubit extends Cubit<ReactionState> {
     final current = state.currentEmoji;
     final nextCounts = <String, int>{...state.counts};
 
+    // Optimistic update so the tap feels instant while the request is in flight.
     if (current == emoji) {
       final count = (nextCounts[emoji] ?? 1) - 1;
       count <= 0 ? nextCounts.remove(emoji) : nextCounts[emoji] = count;
@@ -109,12 +97,53 @@ class ReactionsCubit extends Cubit<ReactionState> {
     }
 
     try {
-      // Backend missing reactions toggle API, mock it for now.
-      await load(user);
+      final response = await _api.post(
+        ApiEndpoints.reactionToggle,
+        data: {
+          'photo_id': photoId,
+          'user_id': user.id,
+          'user_name': user.name,
+          'emoji': emoji,
+        },
+      );
+      final raw = (response.data['data'] as List<dynamic>? ?? []);
+      final reactions = raw
+          .map((json) => ReactionModel.fromJson(json as Map<String, dynamic>))
+          .toList();
+      emit(_stateFromReactions(reactions, user));
     } catch (e) {
       sl<AppLogger>().error('Error toggling reaction: $e');
       emit(previous);
     }
+  }
+
+  ReactionState _stateFromReactions(
+    List<ReactionModel> reactions,
+    UserModel? user,
+  ) {
+    final counts = <String, int>{};
+    final namesByEmoji = <String, List<String>>{};
+    String? current;
+
+    for (final reaction in reactions) {
+      counts[reaction.emoji] = (counts[reaction.emoji] ?? 0) + 1;
+      namesByEmoji
+          .putIfAbsent(reaction.emoji, () => <String>[])
+          .add(reaction.userName);
+      if (user != null && reaction.userId == user.id) {
+        current = reaction.emoji;
+      }
+    }
+
+    return ReactionState(
+      counts: counts,
+      currentEmoji: current,
+      tooltipByEmoji: {
+        for (final entry in namesByEmoji.entries)
+          entry.key: _buildTooltip(entry.value),
+      },
+      isLoading: false,
+    );
   }
 
   String _buildTooltip(List<String> names) {
