@@ -7,12 +7,19 @@ class ApiEndpoints {
 
   // configure base URL based on platform
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '192.168.1.4';
+  static const String _ipAddress = '192.168.1.192';
   static const int _port = 5050;
 
   // Base URL configuration
   static String get _host {
-    if (isPhysicalDevice) return _ipAddress;
+    if (isPhysicalDevice) {
+      // Android over USB: tunnel via `adb reverse tcp:5050 tcp:5050`
+      // instead of a LAN IP — Wi-Fi network/AP isolation (e.g. a phone
+      // hotspot) can silently block phone <-> dev-machine traffic even
+      // when both are "on the same network".
+      if (Platform.isAndroid) return 'localhost';
+      return _ipAddress;
+    }
     if (kIsWeb || Platform.isIOS) return 'localhost';
     if (Platform.isAndroid) return '10.0.2.2';
     return 'localhost';
@@ -79,4 +86,8 @@ class ApiEndpoints {
   static const String photoUpload = 'photos/upload';
   static String albumPhotos(String albumId) => 'photos/album/$albumId';
   static String photo(String id) => 'photos/$id';
+
+  // -------------------------- REACTIONS -------------------------
+  static const String reactionToggle = 'reactions/toggle';
+  static String reactionsByPhoto(String photoId) => 'reactions/photo/$photoId';
 }

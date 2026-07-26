@@ -6,12 +6,13 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/common/common.dart';
 import 'package:snapconnect/core/utils/validators.dart';
+import 'package:snapconnect/navigation/route_paths.dart';
 import '../BloC/auth_cubit.dart';
 import '../BloC/auth_state.dart';
 import '../widgets/signup_chrome.dart';
 import '../widgets/welcome_collage_background.dart';
 
-/// Sliding, single-field-per-step sign-up flow: welcome → email → username →
+/// Sliding, single-field-per-step sign-up flow: welcome → email → name →
 /// password → confirm password → phone (optional). Each step validates
 /// itself before the page slides to the next, matching a Pinterest-style
 /// step wizard while reusing this app's existing auth BLoC and theme tokens.
@@ -22,7 +23,7 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-enum _Step { welcome, email, username, password, confirmPassword, phone }
+enum _Step { welcome, email, name, password, confirmPassword, phone }
 
 class _RegisterPageState extends State<RegisterPage> {
   static const _steps = _Step.values;
@@ -32,13 +33,14 @@ class _RegisterPageState extends State<RegisterPage> {
   int _index = 0;
 
   final _emailKey = GlobalKey<FormState>();
-  final _usernameKey = GlobalKey<FormState>();
+  final _nameKey = GlobalKey<FormState>();
   final _passwordKey = GlobalKey<FormState>();
   final _confirmPasswordKey = GlobalKey<FormState>();
   final _phoneKey = GlobalKey<FormState>();
 
   final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -50,7 +52,8 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _pageController.dispose();
     _emailController.dispose();
-    _usernameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _phoneController.dispose();
@@ -93,16 +96,13 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   void _submit() {
-    final username = _usernameController.text.trim();
+    final firstName = _firstNameController.text.trim();
+    final lastName = _lastNameController.text.trim();
     final phone = _phoneController.text.trim();
     context.read<AuthCubit>().register({
-      // The backend's user record is keyed on Firstname/Lastname rather than
-      // a single username field, so the username collected here is mapped
-      // onto Firstname to satisfy that contract without resurrecting a
-      // separate name step in this UI.
-      'Firstname': username,
-      'Lastname': '',
-      'username': username,
+      'Firstname': firstName,
+      'Lastname': lastName,
+      'username': firstName,
       'email': _emailController.text.trim(),
       'password': _passwordController.text,
       'confirmPassword': _confirmPasswordController.text,
@@ -160,18 +160,30 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     SignupFieldStep(
-                      formKey: _usernameKey,
-                      headline: 'Choose a username',
+                      formKey: _nameKey,
+                      headline: "What's your name?",
                       subtitle:
                           "This is how friends find you. You can change it later.",
-                      field: AppTextField(
-                        controller: _usernameController,
-                        hint: 'e.g. aayush.codes',
-                        autofocus: true,
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) =>
-                            _validateAndAdvance(_usernameKey),
-                        validator: Validators.validateUsername,
+                      field: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          AppTextField(
+                            controller: _firstNameController,
+                            hint: 'Enter your first name',
+                            autofocus: true,
+                            textInputAction: TextInputAction.next,
+                            validator: Validators.validateName,
+                          ),
+                          const Gap(AppDimens.space16),
+                          AppTextField(
+                            controller: _lastNameController,
+                            hint: 'Enter your last name',
+                            textInputAction: TextInputAction.next,
+                            onFieldSubmitted: (_) =>
+                                _validateAndAdvance(_nameKey),
+                            validator: Validators.validateName,
+                          ),
+                        ],
                       ),
                     ),
                     SignupFieldStep(
@@ -232,8 +244,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     SignupFieldStep(
                       formKey: _phoneKey,
                       banner: _EditableBanner(
-                        usernameListenable: _usernameController,
-                        onEdit: () => _goToPage(_Step.username.index),
+                        nameListenable: _firstNameController,
+                        onEdit: () => _goToPage(_Step.name.index),
                       ),
                       headline: "What's your phone number?",
                       subtitle:
@@ -265,8 +277,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     onContinue: switch (step) {
                       _Step.welcome => null,
                       _Step.email => () => _validateAndAdvance(_emailKey),
-                      _Step.username => () =>
-                          _validateAndAdvance(_usernameKey),
+                      _Step.name => () =>
+                          _validateAndAdvance(_nameKey),
                       _Step.password => () =>
                           _validateAndAdvance(_passwordKey),
                       _Step.confirmPassword => () =>
@@ -284,27 +296,27 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 }
 
-/// Shows "Hi @username" with a shortcut back to the username step, mirroring
+/// Shows "Hi {name}" with a shortcut back to the name step, mirroring
 /// the reference design's editable-name banner on its final step.
 class _EditableBanner extends StatelessWidget {
   const _EditableBanner({
-    required this.usernameListenable,
+    required this.nameListenable,
     required this.onEdit,
   });
 
-  final TextEditingController usernameListenable;
+  final TextEditingController nameListenable;
   final VoidCallback onEdit;
 
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: usernameListenable,
+      listenable: nameListenable,
       builder: (context, _) {
-        final username = usernameListenable.text.trim();
+        final name = nameListenable.text.trim();
         return Row(
           children: [
             Text(
-              username.isEmpty ? 'Hi there' : 'Hi @$username',
+              name.isEmpty ? 'Hi there' : 'Hi $name',
               style: context.text.titleMedium?.copyWith(
                 color: context.colors.onSurface,
               ),
@@ -437,9 +449,6 @@ class _TermsNotice extends StatelessWidget {
       fontWeight: FontWeight.w600,
     );
 
-    void showComingSoon() =>
-        AppSnackBar.showInfo(context, AppStrings.comingSoon);
-
     return Text.rich(
       TextSpan(
         style: style,
@@ -448,13 +457,15 @@ class _TermsNotice extends StatelessWidget {
           TextSpan(
             text: 'Terms of Service',
             style: linkStyle,
-            recognizer: TapGestureRecognizer()..onTap = showComingSoon,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => context.push(RoutePaths.termsOfService),
           ),
           const TextSpan(text: ' and acknowledge our '),
           TextSpan(
             text: 'Privacy Policy',
             style: linkStyle,
-            recognizer: TapGestureRecognizer()..onTap = showComingSoon,
+            recognizer: TapGestureRecognizer()
+              ..onTap = () => context.push(RoutePaths.privacyPolicy),
           ),
           const TextSpan(text: '.'),
         ],
