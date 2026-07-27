@@ -308,7 +308,7 @@ class _UploadScreenState extends State<UploadScreen> {
   }
 }
 
-class _UploadPreviewTile extends StatelessWidget {
+class _UploadPreviewTile extends StatefulWidget {
   const _UploadPreviewTile({required this.item, this.onRemove, this.onRetry});
 
   final UploadItem item;
@@ -316,7 +316,34 @@ class _UploadPreviewTile extends StatelessWidget {
   final VoidCallback? onRetry;
 
   @override
+  State<_UploadPreviewTile> createState() => _UploadPreviewTileState();
+}
+
+class _UploadPreviewTileState extends State<_UploadPreviewTile> {
+  late Future<Uint8List> _bytesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _bytesFuture = widget.item.file.readAsBytes();
+  }
+
+  @override
+  void didUpdateWidget(covariant _UploadPreviewTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The upload stream re-emits this tile's item (new status/error) many
+    // times per photo; only re-read the file if it's actually a different
+    // one, otherwise every progress tick would re-decode every tile.
+    if (oldWidget.item.file.path != widget.item.file.path) {
+      _bytesFuture = widget.item.file.readAsBytes();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final item = widget.item;
+    final onRemove = widget.onRemove;
+    final onRetry = widget.onRetry;
     Color borderColor;
     IconData statusIcon;
 
@@ -344,7 +371,7 @@ class _UploadPreviewTile extends StatelessWidget {
       child: Stack(
         children: [
           FutureBuilder<Uint8List>(
-            future: item.file.readAsBytes(),
+            future: _bytesFuture,
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const AspectRatio(
@@ -352,7 +379,15 @@ class _UploadPreviewTile extends StatelessWidget {
                   child: ColoredBox(color: Colors.black12),
                 );
               }
-              return Image.memory(snapshot.data!, fit: BoxFit.cover);
+              // Grid tiles only ever render at a small size — decode at a
+              // downsampled resolution instead of the full camera-resolution
+              // image, which is the difference between a few KB and tens of
+              // MB of decoded bitmap memory per tile.
+              return Image.memory(
+                snapshot.data!,
+                fit: BoxFit.cover,
+                cacheWidth: 300,
+              );
             },
           ),
           Positioned.fill(
