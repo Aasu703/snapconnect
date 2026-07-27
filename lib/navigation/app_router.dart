@@ -54,6 +54,16 @@ String? _redirect(BuildContext context, GoRouterState state) {
       state.matchedLocation == RoutePaths.login ||
       state.matchedLocation == RoutePaths.register;
 
+  // A join deep link (snapconnect://join/<code>) can arrive while logged out —
+  // typically a guest scanning a host's QR. Hand them to the guest flow with
+  // the code intact instead of bouncing to /login, which would drop it.
+  if (!isAuthenticated && state.matchedLocation.startsWith('/join/')) {
+    final joinCode = state.pathParameters['joinCode'];
+    if (joinCode != null && joinCode.isNotEmpty) {
+      return RoutePaths.guestLandingFor(joinCode);
+    }
+  }
+
   if (!isAuthenticated && !isLoggingIn) {
     return RoutePaths.login;
   }

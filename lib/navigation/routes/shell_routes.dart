@@ -111,6 +111,11 @@ final List<RouteBase> shellRoutes = [
     },
   ),
   GoRoute(
+    path: RoutePaths.joinPartyEntry,
+    pageBuilder: (context, state) =>
+        buildFadeTransitionPage(state: state, child: const JoinPartyScreen()),
+  ),
+  GoRoute(
     path: RoutePaths.joinParty,
     pageBuilder: (context, state) {
       return buildFadeTransitionPage(

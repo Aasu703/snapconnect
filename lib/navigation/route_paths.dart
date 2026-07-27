@@ -36,6 +36,8 @@ final class RoutePaths {
   static const String party = '/party';
   static const String partyCreate = '/party/create';
   static const String partyDetail = '/party/:joinCode';
+  /// Join screen with no code pre-filled — manual entry + QR scanner.
+  static const String joinPartyEntry = '/join';
   static const String joinParty = '/join/:joinCode';
   static const String profile = '/profile';
   static const String photoViewer = '/photo/:id';
