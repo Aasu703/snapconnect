@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "snapconnect (adb reverse)",
+      "request": "launch",
+      "type": "dart",
+      "preLaunchTask": "adb-reverse-5050"
+    }
+  ]
+}
