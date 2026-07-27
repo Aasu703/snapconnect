@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/common/common.dart';
+import 'package:snapconnect/navigation/route_paths.dart';
 import '../BloC/auth_cubit.dart';
 import '../BloC/auth_state.dart';
 
@@ -35,6 +36,10 @@ class _LoginPageState extends State<LoginPage> {
           _emailController.text.trim(),
           _passwordController.text,
         );
+  }
+
+  void _signInWithGoogle() {
+    context.read<AuthCubit>().signInWithGoogle();
   }
 
   @override
@@ -151,7 +156,8 @@ class _LoginPageState extends State<LoginPage> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {},
+                              onPressed: () =>
+                                  context.push(RoutePaths.forgotPassword),
                               style: TextButton.styleFrom(
                                 foregroundColor:
                                     AppColors.primary.withValues(alpha: 0.8),
