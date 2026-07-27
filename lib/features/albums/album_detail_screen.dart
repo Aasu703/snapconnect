@@ -15,7 +15,7 @@ import 'package:snapconnect/widgets/confirm_dialog.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/loading_skeleton.dart';
 import 'package:snapconnect/widgets/photo_grid.dart';
-import 'package:snapconnect/widgets/reaction_bar.dart';
+import 'package:snapconnect/widgets/reaction_picker_controller.dart';
 
 /// Screen showing one album with photo grid and actions.
 class AlbumDetailScreen extends StatefulWidget {
@@ -27,7 +27,8 @@ class AlbumDetailScreen extends StatefulWidget {
   State<AlbumDetailScreen> createState() => _AlbumDetailScreenState();
 }
 
-class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
+class _AlbumDetailScreenState extends State<AlbumDetailScreen>
+    with ReactionPickerController<AlbumDetailScreen> {
   Timer? _refreshTimer;
 
   @override
@@ -114,6 +115,15 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
   Widget build(BuildContext context) {
     final albumsState = context.watch<AlbumsBloc>().state;
 
+    return Stack(
+      children: [
+        _buildScaffold(context, albumsState),
+        buildReactionOverlay(),
+      ],
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, AlbumsState albumsState) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Album Details'),
@@ -177,8 +187,14 @@ class _AlbumDetailScreenState extends State<AlbumDetailScreen> {
               photos: photos,
               onPhotoTap: (photo) =>
                   context.push('/photo/${photo.id}?albumId=${photo.albumId}'),
-              onPhotoLongPress: _showPhotoActions,
-              footerBuilder: (photo) => ReactionBar(photoId: photo.id),
+              onPhotoMenuTap: _showPhotoActions,
+              onReactionLongPressStart: (photo, details) =>
+                  onReactionLongPressStart(photo.id, details),
+              onReactionLongPressMoveUpdate: (_, details) =>
+                  onReactionLongPressMove(details),
+              onReactionLongPressEnd: (_, details) =>
+                  onReactionLongPressEnd(details),
+              onReactionLongPressCancel: (_) => onReactionLongPressCancel(),
             );
           },
         ),

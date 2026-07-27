@@ -401,14 +401,21 @@ class _UploadPreviewTileState extends State<_UploadPreviewTile> {
           Positioned(
             top: 6,
             right: 6,
-            child: DecoratedBox(
-              decoration: const BoxDecoration(
-                color: Colors.black54,
-                shape: BoxShape.circle,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Icon(statusIcon, color: Colors.white, size: 16),
+            child: GestureDetector(
+              onTap: item.status == UploadItemStatus.error && item.error != null
+                  ? () => ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(item.error!)),
+                      )
+                  : null,
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  color: Colors.black54,
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(4),
+                  child: Icon(statusIcon, color: Colors.white, size: 16),
+                ),
               ),
             ),
           ),

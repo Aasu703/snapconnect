@@ -12,7 +12,7 @@ import 'package:snapconnect/widgets/avatar_widget.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/live_badge.dart';
 import 'package:snapconnect/widgets/photo_grid.dart';
-import 'package:snapconnect/widgets/reaction_bar.dart';
+import 'package:snapconnect/widgets/reaction_picker_controller.dart';
 
 /// Party details screen showing QR join flow and live photo feed.
 class PartyDetailScreen extends StatefulWidget {
@@ -24,7 +24,8 @@ class PartyDetailScreen extends StatefulWidget {
   State<PartyDetailScreen> createState() => _PartyDetailScreenState();
 }
 
-class _PartyDetailScreenState extends State<PartyDetailScreen> {
+class _PartyDetailScreenState extends State<PartyDetailScreen>
+    with ReactionPickerController<PartyDetailScreen> {
   Timer? _refreshTimer;
 
   @override
@@ -51,6 +52,15 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
   Widget build(BuildContext context) {
     final partyState = context.watch<PartyBloc>().state;
 
+    return Stack(
+      children: [
+        _buildScaffold(context, partyState),
+        buildReactionOverlay(),
+      ],
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, PartyState partyState) {
     return Scaffold(
       appBar: AppBar(title: const Text('Party Details')),
       body: RefreshIndicator(
@@ -182,7 +192,14 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
                     onPhotoTap: (photo) => context.push(
                       '/photo/${photo.id}?albumId=${photo.albumId}',
                     ),
-                    footerBuilder: (photo) => ReactionBar(photoId: photo.id),
+                    onReactionLongPressStart: (photo, details) =>
+                        onReactionLongPressStart(photo.id, details),
+                    onReactionLongPressMoveUpdate: (_, details) =>
+                        onReactionLongPressMove(details),
+                    onReactionLongPressEnd: (_, details) =>
+                        onReactionLongPressEnd(details),
+                    onReactionLongPressCancel: (_) =>
+                        onReactionLongPressCancel(),
                   ),
                 ),
               ],

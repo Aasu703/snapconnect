@@ -325,7 +325,7 @@ class _GradientButton extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: onPressed == null ? AppColors.outlineVariant : AppColors.primary,
+        color: onPressed == null ? context.colors.outlineVariant : AppColors.primary,
         boxShadow: onPressed != null
             ? [
                 BoxShadow(
