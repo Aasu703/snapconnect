@@ -65,6 +65,29 @@ class AuthCubit extends Cubit<AuthState> {
     }
   }
 
+  /// Signs in with Google, exchanging the ID token for an app session.
+  Future<void> signInWithGoogle() async {
+    emit(AuthLoading());
+    try {
+      final idToken = await _googleAuthService.signIn();
+      if (idToken == null) {
+        // User dismissed the account picker — not an error, so fall back to
+        // the pre-attempt state rather than showing a failure message.
+        emit(Unauthenticated());
+        return;
+      }
+
+      final result = await _googleSignInUseCase(idToken);
+      final user = result['user'];
+      await SessionService.instance.saveUser(user);
+      sl<AppLogger>().good('Google sign-in succeeded for ${user.email}');
+      emit(Authenticated(user: user, token: result['token']));
+    } catch (e) {
+      sl<AppLogger>().error('Google sign-in failed: $e');
+      emit(AuthError(e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
   /// Registers a new account.
   Future<void> register(Map<String, dynamic> data) async {
     emit(AuthLoading());
@@ -87,6 +110,9 @@ class AuthCubit extends Cubit<AuthState> {
   Future<void> logout() async {
     emit(AuthLoading());
     await _logoutUseCase();
+    // Without this, the next Google sign-in silently reuses the cached account
+    // instead of letting the user pick one.
+    await _googleAuthService.signOut();
     await SessionService.instance.clearUser();
     emit(Unauthenticated());
   }
