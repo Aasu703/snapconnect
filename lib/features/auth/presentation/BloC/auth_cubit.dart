@@ -2,7 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/di/injection_container.dart';
 import '../../../../core/logger/app_logger.dart';
+import '../../../../core/services/google_auth_service.dart';
 import '../../domain/usecases/check_auth_usecase.dart';
+import '../../domain/usecases/google_signin_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
@@ -14,16 +16,22 @@ class AuthCubit extends Cubit<AuthState> {
   final RegisterUseCase _registerUseCase;
   final CheckAuthUseCase _checkAuthUseCase;
   final LogoutUseCase _logoutUseCase;
+  final GoogleSignInUseCase _googleSignInUseCase;
+  final GoogleAuthService _googleAuthService;
 
   AuthCubit({
     required LoginUseCase loginUseCase,
     required RegisterUseCase registerUseCase,
     required CheckAuthUseCase checkAuthUseCase,
     required LogoutUseCase logoutUseCase,
+    required GoogleSignInUseCase googleSignInUseCase,
+    required GoogleAuthService googleAuthService,
   })  : _loginUseCase = loginUseCase,
         _registerUseCase = registerUseCase,
         _checkAuthUseCase = checkAuthUseCase,
         _logoutUseCase = logoutUseCase,
+        _googleSignInUseCase = googleSignInUseCase,
+        _googleAuthService = googleAuthService,
         super(AuthInitial());
 
   /// Checks existing session on app startup.

@@ -65,6 +65,10 @@ class ApiEndpoints {
   static const String userLogin = 'auth/login';
   static const String userRegister = 'auth/register';
   static const String userWhoAmI = 'auth/whoami';
+  static const String userGoogleSignIn = 'auth/google';
+  static const String userForgotPassword = 'auth/forgot-password';
+  static const String userVerifyResetOtp = 'auth/verify-reset-otp';
+  static const String userResetPassword = 'auth/reset-password';
   static const String userUploadPhoto = 'auth/update-profile';
   static String userPicture(String filename) =>
       resolveMediaUrl('user_photos/$filename');
