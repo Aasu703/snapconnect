@@ -5,7 +5,7 @@
       "name": "snapconnect (adb reverse)",
       "request": "launch",
       "type": "dart",
-      "preLaunchTask": "adb-reverse-5050"
+      "preLaunchTask": "watch-adb-reverse"
     }
   ]
 }
