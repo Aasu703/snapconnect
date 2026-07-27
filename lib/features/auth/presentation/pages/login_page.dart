@@ -204,23 +204,15 @@ class _LoginPageState extends State<LoginPage> {
                             ],
                           ),
                           const Gap(20),
-                          // Social placeholders
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _SocialButton(
-                                  icon: Icons.g_mobiledata_rounded,
-                                  label: 'Google',
-                                ),
-                              ),
-                              const Gap(12),
-                              Expanded(
-                                child: _SocialButton(
-                                  icon: Icons.apple_rounded,
-                                  label: 'Apple',
-                                ),
-                              ),
-                            ],
+                          BlocBuilder<AuthCubit, AuthState>(
+                            builder: (context, state) {
+                              final isLoading = state is AuthLoading;
+                              return _SocialButton(
+                                icon: Icons.g_mobiledata_rounded,
+                                label: 'Google',
+                                onTap: isLoading ? null : _signInWithGoogle,
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -367,10 +359,15 @@ class _GradientButton extends StatelessWidget {
 }
 
 class _SocialButton extends StatelessWidget {
-  const _SocialButton({required this.icon, required this.label});
+  const _SocialButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -385,9 +382,7 @@ class _SocialButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            AppSnackBar.showInfo(context, AppStrings.comingSoon);
-          },
+          onTap: onTap,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

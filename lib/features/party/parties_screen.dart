@@ -6,6 +6,7 @@ import 'package:snapconnect/core/models/party_model.dart';
 import 'package:snapconnect/core/blocs/party_bloc.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/common/common.dart';
+import 'package:snapconnect/navigation/route_paths.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
 /// Screen showing active parties with explicit async states.
@@ -43,6 +44,10 @@ class _PartiesScreenState extends State<PartiesScreen> {
     context.push('/party/create');
   }
 
+  void _joinParty() {
+    context.push(RoutePaths.joinPartyEntry);
+  }
+
   Future<void> _refreshAllParties() async {
     context.read<PartyBloc>().add(FetchParties());
   }
@@ -69,6 +74,13 @@ class _PartiesScreenState extends State<PartiesScreen> {
           ),
           backgroundColor: context.colors.surface,
           elevation: 0,
+          actions: [
+            IconButton(
+              tooltip: 'Join with code or QR',
+              icon: const Icon(Icons.qr_code_scanner_rounded),
+              onPressed: _joinParty,
+            ),
+          ],
           bottom: const TabBar(
             tabs: [
               Tab(text: 'All Parties'),
@@ -85,8 +97,9 @@ class _PartiesScreenState extends State<PartiesScreen> {
               listName: 'All parties',
               emptyTitle: 'No parties yet',
               emptySubtitle: 'No parties yet. Create one! 🎉',
+              emptyActionLabel: AppStrings.createParty,
               onRefresh: _refreshAllParties,
-              onCreateParty: _createParty,
+              onEmptyAction: _createParty,
             ),
             _PartyListView(
               isLoading: partyState.isLoadingMyParties && partyState.myParties == null,
@@ -95,8 +108,9 @@ class _PartiesScreenState extends State<PartiesScreen> {
               listName: 'My parties',
               emptyTitle: 'You have not joined any parties',
               emptySubtitle: 'Join a party via code or QR to see it here.',
+              emptyActionLabel: AppStrings.joinParty,
               onRefresh: _refreshMyParties,
-              onCreateParty: _createParty,
+              onEmptyAction: () async => _joinParty(),
             ),
           ],
         ),
@@ -120,8 +134,9 @@ class _PartyListView extends StatelessWidget {
     required this.listName,
     required this.emptyTitle,
     required this.emptySubtitle,
+    required this.emptyActionLabel,
     required this.onRefresh,
-    required this.onCreateParty,
+    required this.onEmptyAction,
   });
 
   final bool isLoading;
@@ -130,8 +145,9 @@ class _PartyListView extends StatelessWidget {
   final String listName;
   final String emptyTitle;
   final String emptySubtitle;
+  final String emptyActionLabel;
   final Future<void> Function() onRefresh;
-  final Future<void> Function() onCreateParty;
+  final Future<void> Function() onEmptyAction;
 
   @override
   Widget build(BuildContext context) {
@@ -184,8 +200,8 @@ class _PartyListView extends StatelessWidget {
         emoji: '🎉',
         title: emptyTitle,
         subtitle: emptySubtitle,
-        actionLabel: AppStrings.createParty,
-        onAction: () => onCreateParty(),
+        actionLabel: emptyActionLabel,
+        onAction: () => onEmptyAction(),
       );
     }
 
