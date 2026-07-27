@@ -74,8 +74,6 @@ dependencies:
   share_plus: ^10.0.0
   package_info_plus: ^8.0.2
   graphql: ^5.2.4
-  firebase_core: ^4.10.0
-  firebase_auth: ^6.5.2
   talker_flutter: ^5.0.0-dev.7
   talker_dio_logger: ^5.1.17
   talker_bloc_logger: ^5.1.17

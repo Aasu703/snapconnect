@@ -1,23 +1,26 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiEndpoints {
   ApiEndpoints._();
 
   // configure base URL based on platform
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '172.25.18.198';
+  static const String _ipAddress = '172.21.240.1';
   static const int _port = 5050;
+
+  static String get _configuredBaseUrl =>
+      dotenv.env['API_BASE_URL']?.trim() ?? '';
 
   // Base URL configuration
   static String get _host {
     if (isPhysicalDevice) {
-      // Android over USB: tunnel via `adb reverse tcp:5050 tcp:5050`
-      // instead of a LAN IP — Wi-Fi network/AP isolation (e.g. a phone
-      // hotspot) can silently block phone <-> dev-machine traffic even
-      // when both are "on the same network".
-      if (Platform.isAndroid) return 'localhost';
+      // Physical Android devices usually need the machine's LAN address.
+      // If you prefer `adb reverse tcp:5050 tcp:5050`, override API_BASE_URL
+      // to `http://localhost:5050/` in the app's `.env`.
+      if (Platform.isAndroid) return _ipAddress;
       return _ipAddress;
     }
     if (kIsWeb || Platform.isIOS) return 'localhost';
@@ -25,7 +28,17 @@ class ApiEndpoints {
     return 'localhost';
   }
 
-  static String get serverUrl => 'http://$_host:$_port/';
+  static String get serverUrl {
+    final configuredBaseUrl = _configuredBaseUrl;
+    if (configuredBaseUrl.isNotEmpty) {
+      return configuredBaseUrl.endsWith('/')
+          ? configuredBaseUrl
+          : '$configuredBaseUrl/';
+    }
+
+    return 'http://$_host:$_port/';
+  }
+
   static String get socketUrl => 'http://$_host:$_port';
   static String get baseUrl => '${serverUrl}api/';
   static String get mediaUrl => '${serverUrl}media/';
