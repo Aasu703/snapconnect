@@ -4,11 +4,15 @@ import 'package:get_it/get_it.dart';
 import 'package:snapconnect/core/api/api.endpoints.dart';
 import 'package:snapconnect/features/auth/data/repositories/auth_repository.dart';
 import 'package:snapconnect/features/auth/domain/repositories/auth_repository.dart';
+import 'package:snapconnect/core/services/google_auth_service.dart';
 import 'package:snapconnect/features/auth/domain/usecases/check_auth_usecase.dart';
+import 'package:snapconnect/features/auth/domain/usecases/google_signin_usecase.dart';
 import 'package:snapconnect/features/auth/domain/usecases/login_usecase.dart';
 import 'package:snapconnect/features/auth/domain/usecases/logout_usecase.dart';
+import 'package:snapconnect/features/auth/domain/usecases/password_reset_usecases.dart';
 import 'package:snapconnect/features/auth/domain/usecases/register_usecase.dart';
 import 'package:snapconnect/features/auth/presentation/BloC/auth_cubit.dart';
+import 'package:snapconnect/features/auth/presentation/BloC/password_reset_cubit.dart';
 import 'package:talker_dio_logger/talker_dio_logger.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:snapconnect/core/logger/app_logger.dart';
@@ -69,11 +73,19 @@ Future<void> initDependencies() async {
         AuthRepositoryImpl(dio: sl<Dio>(), storage: sl<FlutterSecureStorage>()),
   );
 
+  sl.registerLazySingleton<GoogleAuthService>(() => GoogleAuthService());
+
   // Domain layer — use cases
   sl.registerLazySingleton(() => LoginUseCase(sl<IAuthRepository>()));
   sl.registerLazySingleton(() => RegisterUseCase(sl<IAuthRepository>()));
   sl.registerLazySingleton(() => CheckAuthUseCase(sl<IAuthRepository>()));
   sl.registerLazySingleton(() => LogoutUseCase(sl<IAuthRepository>()));
+  sl.registerLazySingleton(() => GoogleSignInUseCase(sl<IAuthRepository>()));
+  sl.registerLazySingleton(
+    () => RequestPasswordResetUseCase(sl<IAuthRepository>()),
+  );
+  sl.registerLazySingleton(() => VerifyResetOtpUseCase(sl<IAuthRepository>()));
+  sl.registerLazySingleton(() => ResetPasswordUseCase(sl<IAuthRepository>()));
 
   // Presentation layer — BloC / Cubit
   sl.registerFactory(
@@ -82,6 +94,15 @@ Future<void> initDependencies() async {
       registerUseCase: sl<RegisterUseCase>(),
       checkAuthUseCase: sl<CheckAuthUseCase>(),
       logoutUseCase: sl<LogoutUseCase>(),
+      googleSignInUseCase: sl<GoogleSignInUseCase>(),
+      googleAuthService: sl<GoogleAuthService>(),
+    ),
+  );
+  sl.registerFactory(
+    () => PasswordResetCubit(
+      requestPasswordResetUseCase: sl<RequestPasswordResetUseCase>(),
+      verifyResetOtpUseCase: sl<VerifyResetOtpUseCase>(),
+      resetPasswordUseCase: sl<ResetPasswordUseCase>(),
     ),
   );
 

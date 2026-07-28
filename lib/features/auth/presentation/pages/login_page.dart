@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:snapconnect/common/common.dart';
+import 'package:snapconnect/navigation/route_paths.dart';
 import '../BloC/auth_cubit.dart';
 import '../BloC/auth_state.dart';
 
@@ -35,6 +36,10 @@ class _LoginPageState extends State<LoginPage> {
           _emailController.text.trim(),
           _passwordController.text,
         );
+  }
+
+  void _signInWithGoogle() {
+    context.read<AuthCubit>().signInWithGoogle();
   }
 
   @override
@@ -151,7 +156,8 @@ class _LoginPageState extends State<LoginPage> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () {},
+                              onPressed: () =>
+                                  context.push(RoutePaths.forgotPassword),
                               style: TextButton.styleFrom(
                                 foregroundColor:
                                     AppColors.primary.withValues(alpha: 0.8),
@@ -204,23 +210,15 @@ class _LoginPageState extends State<LoginPage> {
                             ],
                           ),
                           const Gap(20),
-                          // Social placeholders
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _SocialButton(
-                                  icon: Icons.g_mobiledata_rounded,
-                                  label: 'Google',
-                                ),
-                              ),
-                              const Gap(12),
-                              Expanded(
-                                child: _SocialButton(
-                                  icon: Icons.apple_rounded,
-                                  label: 'Apple',
-                                ),
-                              ),
-                            ],
+                          BlocBuilder<AuthCubit, AuthState>(
+                            builder: (context, state) {
+                              final isLoading = state is AuthLoading;
+                              return _SocialButton(
+                                icon: Icons.g_mobiledata_rounded,
+                                label: 'Google',
+                                onTap: isLoading ? null : _signInWithGoogle,
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -325,7 +323,7 @@ class _GradientButton extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: onPressed == null ? AppColors.outlineVariant : AppColors.primary,
+        color: onPressed == null ? context.colors.outlineVariant : AppColors.primary,
         boxShadow: onPressed != null
             ? [
                 BoxShadow(
@@ -367,10 +365,15 @@ class _GradientButton extends StatelessWidget {
 }
 
 class _SocialButton extends StatelessWidget {
-  const _SocialButton({required this.icon, required this.label});
+  const _SocialButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String label;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -385,9 +388,7 @@ class _SocialButton extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            AppSnackBar.showInfo(context, AppStrings.comingSoon);
-          },
+          onTap: onTap,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

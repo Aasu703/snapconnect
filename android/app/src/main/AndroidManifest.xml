@@ -9,7 +9,8 @@
     <application
         android:label="snapconnect"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:largeHeap="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -30,6 +31,15 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- Party invite deep links: snapconnect://join/<CODE>.
+                 QR codes encode this scheme so scanning opens the app on the
+                 join screen instead of a browser. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="snapconnect" android:host="join"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

@@ -11,6 +11,7 @@ import 'package:snapconnect/core/blocs/party_bloc.dart';
 import 'package:snapconnect/features/party/party_controller.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
+import 'package:snapconnect/core/utils/party_invite_link.dart';
 import 'package:snapconnect/core/utils/validators.dart';
 import 'package:snapconnect/widgets/identity_bottom_sheet.dart';
 
@@ -153,13 +154,13 @@ class _JoinPartyScreenState extends State<JoinPartyScreen> {
       return;
     }
 
-    final match = RegExp(r'([A-Z0-9]{6})$').firstMatch(payload.toUpperCase());
-    final code = match?.group(1);
+    final code = PartyInviteLink.parseJoinCode(payload);
     if (code == null) {
       return;
     }
 
     _scannerLocked = true;
+    setState(() => _showScanner = false);
     _codeController.text = code;
     await _resolveCode();
     _scannerLocked = false;

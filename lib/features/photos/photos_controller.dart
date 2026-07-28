@@ -175,51 +175,73 @@ class PhotosController {
       );
       onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
 
-      try {
-        final formData = FormData.fromMap({
-          'album_id': albumId,
-          'title': title?.trim().isEmpty ?? true ? null : title!.trim(),
-          'uploaded_by': user.id,
-          'uploaded_by_name': user.name,
-        });
+      // Large multipart uploads over a flaky link (e.g. a USB adb-reverse
+      // tunnel that drops mid-transfer) fail transiently far more often
+      // than the small JSON requests elsewhere in the app, so retry a
+      // couple of times before giving up on this item.
+      const maxAttempts = 3;
+      Object? lastError;
 
-        if (kIsWeb) {
-          final bytes = await item.file.readAsBytes();
-          formData.files.add(MapEntry(
-            'file',
-            MultipartFile.fromBytes(bytes, filename: item.file.name),
-          ));
-        } else {
-          formData.files.add(MapEntry(
-            'file',
-            await MultipartFile.fromFile(item.file.path, filename: item.file.name),
-          ));
-        }
+      for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          final formData = FormData.fromMap({
+            'album_id': albumId,
+            'title': title?.trim().isEmpty ?? true ? null : title!.trim(),
+            'uploaded_by': user.id,
+            'uploaded_by_name': user.name,
+          });
 
-        final response = await ApiClient().post(
-          ApiEndpoints.photoUpload,
-          data: formData,
-        );
+          if (kIsWeb) {
+            final bytes = await item.file.readAsBytes();
+            formData.files.add(MapEntry(
+              'file',
+              MultipartFile.fromBytes(bytes, filename: item.file.name),
+            ));
+          } else {
+            formData.files.add(MapEntry(
+              'file',
+              await MultipartFile.fromFile(item.file.path, filename: item.file.name),
+            ));
+          }
 
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          final data = response.data['data'];
-          updatedItems[i] = updatedItems[i].copyWith(
-            status: UploadItemStatus.done,
-            uploadedUrl: ApiEndpoints.resolveMediaUrl(data['url']),
+          final response = await ApiClient().post(
+            ApiEndpoints.photoUpload,
+            data: formData,
           );
-          uploaded++;
-        } else {
-           throw Exception('Failed to upload photo.');
-        }
 
-        onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
-      } catch (error) {
+          if (response.statusCode == 200 || response.statusCode == 201) {
+            final data = response.data['data'];
+            updatedItems[i] = updatedItems[i].copyWith(
+              status: UploadItemStatus.done,
+              uploadedUrl: ApiEndpoints.resolveMediaUrl(data['url']),
+            );
+            uploaded++;
+          } else {
+            throw Exception('Failed to upload photo.');
+          }
+
+          lastError = null;
+          break;
+        } catch (error) {
+          lastError = error;
+          final isLastAttempt = attempt == maxAttempts;
+          final isRetryable = error is DioException &&
+              error.type != DioExceptionType.badResponse;
+
+          if (!isRetryable || isLastAttempt) break;
+
+          await Future<void>.delayed(Duration(seconds: attempt));
+        }
+      }
+
+      if (lastError != null) {
         updatedItems[i] = updatedItems[i].copyWith(
           status: UploadItemStatus.error,
-          error: error.toString(),
+          error: lastError.toString(),
         );
-        onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
       }
+
+      onProgress?.call(List<UploadItem>.from(updatedItems), uploaded);
     }
 
     return UploadState(

@@ -10,16 +10,29 @@ class PhotoGrid extends StatelessWidget {
     super.key,
     required this.photos,
     required this.onPhotoTap,
-    this.onPhotoLongPress,
+    this.onPhotoMenuTap,
     this.footerBuilder,
     this.padding = const EdgeInsets.all(16),
+    this.onReactionLongPressStart,
+    this.onReactionLongPressMoveUpdate,
+    this.onReactionLongPressEnd,
+    this.onReactionLongPressCancel,
   });
 
   final List<PhotoModel> photos;
   final void Function(PhotoModel photo) onPhotoTap;
-  final void Function(PhotoModel photo)? onPhotoLongPress;
+  final void Function(PhotoModel photo)? onPhotoMenuTap;
   final Widget Function(PhotoModel photo)? footerBuilder;
   final EdgeInsets padding;
+
+  /// Long-press-to-react gestures, keyed by the photo under the touch.
+  final void Function(PhotoModel photo, LongPressStartDetails details)?
+      onReactionLongPressStart;
+  final void Function(PhotoModel photo, LongPressMoveUpdateDetails details)?
+      onReactionLongPressMoveUpdate;
+  final void Function(PhotoModel photo, LongPressEndDetails details)?
+      onReactionLongPressEnd;
+  final void Function(PhotoModel photo)? onReactionLongPressCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +75,23 @@ class PhotoGrid extends StatelessWidget {
                   tall: isTall,
                   highlightNew: isNew,
                   onTap: () => onPhotoTap(photo),
-                  onLongPress: onPhotoLongPress == null
+                  onMenuTap: onPhotoMenuTap == null
                       ? null
-                      : () => onPhotoLongPress!(photo),
+                      : () => onPhotoMenuTap!(photo),
+                  onReactionLongPressStart: onReactionLongPressStart == null
+                      ? null
+                      : (details) => onReactionLongPressStart!(photo, details),
+                  onReactionLongPressMoveUpdate:
+                      onReactionLongPressMoveUpdate == null
+                          ? null
+                          : (details) =>
+                              onReactionLongPressMoveUpdate!(photo, details),
+                  onReactionLongPressEnd: onReactionLongPressEnd == null
+                      ? null
+                      : (details) => onReactionLongPressEnd!(photo, details),
+                  onReactionLongPressCancel: onReactionLongPressCancel == null
+                      ? null
+                      : () => onReactionLongPressCancel!(photo),
                 ),
                 if (footerBuilder != null) footerBuilder!(photo),
               ],

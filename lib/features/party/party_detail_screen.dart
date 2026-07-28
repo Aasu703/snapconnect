@@ -8,11 +8,12 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:snapconnect/core/constants/app_constants.dart';
 import 'package:snapconnect/core/blocs/party_bloc.dart';
+import 'package:snapconnect/core/utils/party_invite_link.dart';
 import 'package:snapconnect/widgets/avatar_widget.dart';
 import 'package:snapconnect/widgets/empty_state.dart';
 import 'package:snapconnect/widgets/live_badge.dart';
 import 'package:snapconnect/widgets/photo_grid.dart';
-import 'package:snapconnect/widgets/reaction_bar.dart';
+import 'package:snapconnect/widgets/reaction_picker_controller.dart';
 
 /// Party details screen showing QR join flow and live photo feed.
 class PartyDetailScreen extends StatefulWidget {
@@ -24,7 +25,8 @@ class PartyDetailScreen extends StatefulWidget {
   State<PartyDetailScreen> createState() => _PartyDetailScreenState();
 }
 
-class _PartyDetailScreenState extends State<PartyDetailScreen> {
+class _PartyDetailScreenState extends State<PartyDetailScreen>
+    with ReactionPickerController<PartyDetailScreen> {
   Timer? _refreshTimer;
 
   @override
@@ -51,6 +53,15 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
   Widget build(BuildContext context) {
     final partyState = context.watch<PartyBloc>().state;
 
+    return Stack(
+      children: [
+        _buildScaffold(context, partyState),
+        buildReactionOverlay(),
+      ],
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context, PartyState partyState) {
     return Scaffold(
       appBar: AppBar(title: const Text('Party Details')),
       body: RefreshIndicator(
@@ -88,8 +99,11 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
             }
 
             final party = detail.party;
-            final joinUrl =
-                '${AppConstants.webJoinBaseUrl}/join/${party.joinCode}';
+            // QR encodes the deep link so a scan opens the app on the join
+            // screen; the share sheet sends the https form so recipients
+            // without the app installed still have somewhere to land.
+            final joinDeepLink = PartyInviteLink.deepLinkFor(party.joinCode);
+            final joinWebLink = PartyInviteLink.webLinkFor(party.joinCode);
 
             return ListView(
               padding: const EdgeInsets.all(16),
@@ -139,7 +153,7 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: QrImageView(
-                      data: joinUrl,
+                      data: joinDeepLink,
                       version: QrVersions.auto,
                       size: 200,
                       backgroundColor: Colors.white,
@@ -153,7 +167,11 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
                   alignment: WrapAlignment.center,
                   children: [
                     FilledButton.icon(
-                      onPressed: () => Share.share(joinUrl),
+                      onPressed: () => Share.share(
+                        'Join "${party.fullName}" on SnapConnect!\n'
+                        '$joinWebLink\n'
+                        'Or enter code: ${party.joinCode}',
+                      ),
                       icon: const Icon(Icons.share_outlined),
                       label: const Text('Share'),
                     ),
@@ -182,7 +200,14 @@ class _PartyDetailScreenState extends State<PartyDetailScreen> {
                     onPhotoTap: (photo) => context.push(
                       '/photo/${photo.id}?albumId=${photo.albumId}',
                     ),
-                    footerBuilder: (photo) => ReactionBar(photoId: photo.id),
+                    onReactionLongPressStart: (photo, details) =>
+                        onReactionLongPressStart(photo.id, details),
+                    onReactionLongPressMoveUpdate: (_, details) =>
+                        onReactionLongPressMove(details),
+                    onReactionLongPressEnd: (_, details) =>
+                        onReactionLongPressEnd(details),
+                    onReactionLongPressCancel: (_) =>
+                        onReactionLongPressCancel(),
                   ),
                 ),
               ],

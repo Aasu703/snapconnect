@@ -50,9 +50,21 @@ String? _redirect(BuildContext context, GoRouterState state) {
 
   final authState = context.read<AuthCubit>().state;
   final bool isAuthenticated = authState is Authenticated;
+  // Reaching these is the whole point of being signed out.
   final bool isLoggingIn =
       state.matchedLocation == RoutePaths.login ||
-      state.matchedLocation == RoutePaths.register;
+      state.matchedLocation == RoutePaths.register ||
+      state.matchedLocation == RoutePaths.forgotPassword;
+
+  // A join deep link (snapconnect://join/<code>) can arrive while logged out —
+  // typically a guest scanning a host's QR. Hand them to the guest flow with
+  // the code intact instead of bouncing to /login, which would drop it.
+  if (!isAuthenticated && state.matchedLocation.startsWith('/join/')) {
+    final joinCode = state.pathParameters['joinCode'];
+    if (joinCode != null && joinCode.isNotEmpty) {
+      return RoutePaths.guestLandingFor(joinCode);
+    }
+  }
 
   if (!isAuthenticated && !isLoggingIn) {
     return RoutePaths.login;

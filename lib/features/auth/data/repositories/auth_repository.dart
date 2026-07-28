@@ -54,6 +54,90 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
+  Future<Map<String, dynamic>> loginWithGoogle(String idToken) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.baseUrl + ApiEndpoints.userGoogleSignIn,
+        data: {'idToken': idToken},
+      );
+
+      if (response.data['success']) {
+        final token = response.data['token'];
+        final userJson = response.data['data']['user'];
+        await _storage.write(key: 'auth_token', value: token);
+        return {
+          'user': UserModel.fromJson(userJson),
+          'token': token,
+        };
+      }
+      throw Exception(response.data['message'] ?? 'Google sign-in failed');
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Google sign-in failed');
+    }
+  }
+
+  @override
+  Future<void> requestPasswordReset(String email) async {
+    try {
+      await _dio.post(
+        ApiEndpoints.baseUrl + ApiEndpoints.userForgotPassword,
+        data: {'email': email},
+      );
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data['message'] ?? 'Could not send reset code',
+      );
+    }
+  }
+
+  @override
+  Future<void> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.baseUrl + ApiEndpoints.userVerifyResetOtp,
+        data: {'email': email, 'otp': otp},
+      );
+      if (response.data['success'] != true) {
+        throw Exception(response.data['message'] ?? 'Invalid or expired code');
+      }
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data['message'] ?? 'Invalid or expired code',
+      );
+    }
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiEndpoints.baseUrl + ApiEndpoints.userResetPassword,
+        data: {
+          'email': email,
+          'otp': otp,
+          'password': password,
+          'confirmPassword': confirmPassword,
+        },
+      );
+      if (response.data['success'] != true) {
+        throw Exception(response.data['message'] ?? 'Could not reset password');
+      }
+    } on DioException catch (e) {
+      throw Exception(
+        e.response?.data['message'] ?? 'Could not reset password',
+      );
+    }
+  }
+
+  @override
   Future<UserModel?> whoAmI() async {
     try {
       final token = await _storage.read(key: 'auth_token');

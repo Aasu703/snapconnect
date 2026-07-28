@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import 'package:snapconnect/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:snapconnect/features/auth/presentation/pages/login_page.dart';
 import 'package:snapconnect/features/auth/presentation/pages/register_page.dart';
 import 'package:snapconnect/features/splash/splash_screen.dart';
@@ -22,5 +23,12 @@ final List<RouteBase> publicRoutes = [
     path: RoutePaths.register,
     pageBuilder: (context, state) =>
         buildFadeTransitionPage(state: state, child: const RegisterPage()),
+  ),
+  GoRoute(
+    path: RoutePaths.forgotPassword,
+    pageBuilder: (context, state) => buildFadeTransitionPage(
+      state: state,
+      child: const ForgotPasswordPage(),
+    ),
   ),
 ];

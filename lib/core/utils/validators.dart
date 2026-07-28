@@ -71,6 +71,21 @@ final class Validators {
     return null;
   }
 
+  /// Validates a password being newly set (registration, password reset).
+  ///
+  /// Enforces 8 characters to match the backend's minimum — [validatePassword]
+  /// is more lenient because it also guards sign-in against legacy accounts.
+  static String? validateNewPassword(String? value) {
+    final text = value ?? '';
+    if (text.trim().isEmpty) {
+      return 'Password is required';
+    }
+    if (text.length < 8) {
+      return 'At least 8 characters';
+    }
+    return null;
+  }
+
   /// Validates that a confirmation matches the original password.
   static String? validateConfirmPassword(String password, String? value) {
     if (value != password) {
