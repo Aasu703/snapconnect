@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:snapconnect/core/utils/avatar_helper.dart';
 
-/// Circular avatar widget that renders initials and a deterministic background.
+/// Circular avatar widget that renders a photo when [imageUrl] is set,
+/// falling back to initials on a deterministic background otherwise.
 class AvatarWidget extends StatelessWidget {
   const AvatarWidget({
     super.key,
@@ -9,12 +11,14 @@ class AvatarWidget extends StatelessWidget {
     this.colorHex,
     this.size = 36,
     this.fontSize,
+    this.imageUrl,
   });
 
   final String name;
   final String? colorHex;
   final double size;
   final double? fontSize;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +26,7 @@ class AvatarWidget extends StatelessWidget {
         ? AvatarHelper.colorFromHex(colorHex)
         : AvatarHelper.colorFromSeed(name);
 
-    return Container(
+    final fallback = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(color: color, shape: BoxShape.circle),
@@ -34,6 +38,22 @@ class AvatarWidget extends StatelessWidget {
           fontWeight: FontWeight.w700,
           fontSize: fontSize ?? size * 0.38,
         ),
+      ),
+    );
+
+    final url = imageUrl?.trim();
+    if (url == null || url.isEmpty) {
+      return fallback;
+    }
+
+    return ClipOval(
+      child: CachedNetworkImage(
+        imageUrl: url,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        placeholder: (context, url) => fallback,
+        errorWidget: (context, url, error) => fallback,
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:snapconnect/common/theme/context_extensions.dart';
 import 'package:snapconnect/core/constants/app_colors.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/features/events/data/repositories/event_repository_impl.dart';
@@ -63,7 +64,7 @@ class _HostDashboardScreenState extends State<HostDashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: context.appColors.screenBackground,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -81,7 +82,7 @@ class _HostDashboardScreenState extends State<HostDashboardScreen> {
                           'My Events',
                           style: Theme.of(context).textTheme.displayMedium
                               ?.copyWith(
-                                color: Colors.white,
+                                color: context.colors.onSurface,
                                 fontWeight: FontWeight.w800,
                                 fontSize: 28,
                               ),
@@ -90,7 +91,7 @@ class _HostDashboardScreenState extends State<HostDashboardScreen> {
                         Text(
                           '${_events.length} event${_events.length != 1 ? 's' : ''} hosted',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.5),
+                            color: context.appColors.mutedText,
                             fontSize: 14,
                           ),
                         ),
@@ -201,9 +202,9 @@ class _EventCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: context.appColors.cardBackground,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: context.appColors.cardBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -213,8 +214,8 @@ class _EventCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   event.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: context.colors.onSurface,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -228,7 +229,7 @@ class _EventCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: event.isActive
                       ? AppColors.success.withValues(alpha: 0.15)
-                      : Colors.white.withValues(alpha: 0.08),
+                      : context.appColors.mutedText.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -241,7 +242,7 @@ class _EventCard extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: event.isActive
                             ? AppColors.success
-                            : Colors.white.withValues(alpha: 0.4),
+                            : context.appColors.mutedText,
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -250,7 +251,7 @@ class _EventCard extends StatelessWidget {
                       style: TextStyle(
                         color: event.isActive
                             ? AppColors.success
-                            : Colors.white.withValues(alpha: 0.5),
+                            : context.appColors.mutedText,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -267,7 +268,7 @@ class _EventCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.45),
+                color: context.appColors.mutedText,
                 fontSize: 13,
               ),
             ),
@@ -328,12 +329,12 @@ class _StatChip extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: Colors.white.withValues(alpha: 0.4)),
+        Icon(icon, size: 14, color: context.appColors.mutedText),
         const SizedBox(width: 4),
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
+            color: context.appColors.mutedText,
             fontSize: 12,
           ),
         ),
@@ -360,9 +361,9 @@ class _ActionButton extends StatelessWidget {
       child: Container(
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
+          color: context.appColors.cardBackground,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+          border: Border.all(color: context.appColors.cardBorder),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -408,7 +409,7 @@ class _EmptyState extends StatelessWidget {
           Text(
             'No events yet',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
+              color: context.colors.onSurface,
               fontSize: 18,
               fontWeight: FontWeight.w600,
             ),
@@ -417,7 +418,7 @@ class _EmptyState extends StatelessWidget {
           Text(
             'Create your first event to get started',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
+              color: context.appColors.mutedText,
               fontSize: 14,
             ),
           ),

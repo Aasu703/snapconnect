@@ -60,10 +60,27 @@ class EventRepositoryImpl implements IEventRepository {
 
   @override
   Future<Map<String, int>> fetchEventStats(String eventId) async {
-    // Basic implementation since we don't have dedicated endpoint
-    return {
-      'photos': 0,
-      'guests': 0,
-    };
+    try {
+      final partyResponse = await ApiClient().get(ApiEndpoints.party(eventId));
+      if (partyResponse.statusCode != 200 || partyResponse.data['data'] == null) {
+        return {'photos': 0, 'guests': 0};
+      }
+
+      final party = partyResponse.data['data'];
+      final guests = party['member_count'] as int? ?? 0;
+      final albumId = party['album_id']?.toString();
+
+      var photos = 0;
+      if (albumId != null && albumId.isNotEmpty) {
+        final albumResponse = await ApiClient().get(ApiEndpoints.album(albumId));
+        if (albumResponse.statusCode == 200 && albumResponse.data['data'] != null) {
+          photos = albumResponse.data['data']['photo_count'] as int? ?? 0;
+        }
+      }
+
+      return {'photos': photos, 'guests': guests};
+    } catch (_) {
+      return {'photos': 0, 'guests': 0};
+    }
   }
 }

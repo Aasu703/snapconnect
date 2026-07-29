@@ -1,3 +1,5 @@
+import 'package:snapconnect/core/api/api.endpoints.dart';
+
 /// App user identity persisted locally and optionally in Supabase.
 class UserModel {
   const UserModel({
@@ -6,6 +8,7 @@ class UserModel {
     required this.avatarColor,
     required this.createdAt,
     this.email,
+    this.photoUrl,
   });
 
   final String id;
@@ -13,15 +16,20 @@ class UserModel {
   final String? email;
   final String avatarColor;
   final DateTime createdAt;
+  final String? photoUrl;
 
   /// Creates a model from map payloads returned by Supabase.
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    final rawImageUrl = json['imageUrl']?.toString();
     return UserModel(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] ?? 'Guest').toString(),
       email: json['email']?.toString(),
       avatarColor: (json['avatar_color'] ?? '#FF4D96FF').toString(),
       createdAt: _parseDate(json['created_at']),
+      photoUrl: rawImageUrl == null || rawImageUrl.isEmpty
+          ? null
+          : ApiEndpoints.resolveMediaUrl(rawImageUrl),
     );
   }
 
@@ -33,6 +41,7 @@ class UserModel {
       'email': email,
       'avatar_color': avatarColor,
       'created_at': createdAt.toIso8601String(),
+      'imageUrl': photoUrl,
     };
   }
 
@@ -43,6 +52,7 @@ class UserModel {
     String? email,
     String? avatarColor,
     DateTime? createdAt,
+    String? photoUrl,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -50,6 +60,7 @@ class UserModel {
       email: email ?? this.email,
       avatarColor: avatarColor ?? this.avatarColor,
       createdAt: createdAt ?? this.createdAt,
+      photoUrl: photoUrl ?? this.photoUrl,
     );
   }
 

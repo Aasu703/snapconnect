@@ -135,11 +135,23 @@ class _NavItem extends StatelessWidget {
             children: [
               AnimatedSwitcher(
                 duration: AppDimens.durationFast,
-                child: Icon(
-                  isActive ? activeIcon : icon,
+                child: Container(
                   key: ValueKey<bool>(isActive),
-                  color: color,
-                  size: AppDimens.iconMd,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppDimens.space12,
+                    vertical: AppDimens.space2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? context.colors.primary.withValues(alpha: 0.12)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppDimens.radiusLg),
+                  ),
+                  child: Icon(
+                    isActive ? activeIcon : icon,
+                    color: color,
+                    size: AppDimens.iconMd,
+                  ),
                 ),
               ),
               const SizedBox(height: AppDimens.space2),

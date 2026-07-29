@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:snapconnect/core/models/user_model.dart';
 import 'package:snapconnect/core/api/api.client.dart';
 import 'package:snapconnect/core/api/api.endpoints.dart';
@@ -54,5 +56,25 @@ class ProfileController {
     } catch (_) {}
 
     return user.copyWith(email: value);
+  }
+
+  /// Uploads a new profile photo and returns the updated user.
+  Future<UserModel> uploadPhoto(UserModel user, XFile file) async {
+    final formData = FormData.fromMap({
+      'userId': user.id,
+      'photo': await MultipartFile.fromFile(file.path, filename: file.name),
+    });
+
+    final response = await ApiClient().post(
+      ApiEndpoints.userUploadPhoto,
+      data: formData,
+    );
+
+    final photoPath = response.data['data']['imageUrl']?.toString();
+    if (photoPath == null || photoPath.isEmpty) {
+      return user;
+    }
+
+    return user.copyWith(photoUrl: ApiEndpoints.resolveMediaUrl(photoPath));
   }
 }

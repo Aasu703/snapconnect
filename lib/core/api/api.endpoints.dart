@@ -8,7 +8,7 @@ class ApiEndpoints {
 
   // configure base URL based on platform
   static const bool isPhysicalDevice = true;
-  static const String _ipAddress = '172.21.240.1';
+  static const String _ipAddress = '172.26.0.135';
   static const int _port = 5050;
 
   static String get _configuredBaseUrl =>

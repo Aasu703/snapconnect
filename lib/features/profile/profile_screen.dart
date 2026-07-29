@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/blocs/session_cubit.dart';
 import 'package:snapconnect/core/blocs/albums_bloc.dart';
@@ -25,6 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   bool _isSubmitting = false;
+  bool _isUploadingPhoto = false;
 
   @override
   void initState() {
@@ -173,6 +175,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _changePhoto() async {
+    final user = context.read<SessionCubit>().state;
+    if (user == null || _isUploadingPhoto) {
+      return;
+    }
+
+    final file = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
+    );
+    if (file == null) {
+      return;
+    }
+
+    setState(() => _isUploadingPhoto = true);
+    try {
+      final updated = await sl<ProfileController>().uploadPhoto(user, file);
+      if (!mounted) return;
+      await context.read<SessionCubit>().updateUser(updated);
+    } catch (e) {
+      debugPrint('ProfileScreen: photo upload failed: $e');
+      if (mounted) {
+        AppSnackBar.showError(context, 'Failed to update profile photo');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+      }
+    }
+  }
+
   Future<void> _logout() async {
     // Clears both identity stores: SessionCubit (the party/upload identity)
     // and AuthCubit (the secure-storage auth_token checked on every app
@@ -273,10 +308,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
           Center(
             child: Column(
               children: [
-                AvatarWidget(
-                  name: user.name,
-                  colorHex: user.avatarColor,
-                  size: 84,
+                GestureDetector(
+                  onTap: _changePhoto,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      AvatarWidget(
+                        name: user.name,
+                        colorHex: user.avatarColor,
+                        imageUrl: user.photoUrl,
+                        size: 84,
+                      ),
+                      if (_isUploadingPhoto)
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(alpha: 0.4),
+                            ),
+                            child: const Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: context.colors.primary,
+                              border: Border.all(
+                                color: context.appColors.screenBackground,
+                                width: 2,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt_rounded,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
                 const Gap(AppDimens.space12),
                 Text(user.name, style: context.text.headlineSmall),

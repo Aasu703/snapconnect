@@ -133,17 +133,23 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: context.appColors.screenBackground,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_rounded, color: Colors.white),
+          icon: Icon(
+            Icons.arrow_back_ios_rounded,
+            color: context.colors.onSurface,
+          ),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
+        title: Text(
           'Create Event',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: context.colors.onSurface,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       body: SingleChildScrollView(
@@ -285,12 +291,14 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   }
 
   Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: TextStyle(
-        color: Colors.white.withValues(alpha: 0.7),
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
+    return Builder(
+      builder: (context) => Text(
+        text,
+        style: TextStyle(
+          color: context.appColors.mutedText,
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
@@ -302,39 +310,41 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
-      controller: controller,
-      maxLines: maxLines,
-      validator: validator,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(
-          color: Colors.white.withValues(alpha: 0.25),
-          fontSize: 14,
-        ),
-        prefixIcon: Icon(
-          icon,
-          size: 20,
-          color: Colors.white.withValues(alpha: 0.4),
-        ),
-        filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.06),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.danger),
+    return Builder(
+      builder: (context) => TextFormField(
+        controller: controller,
+        maxLines: maxLines,
+        validator: validator,
+        style: TextStyle(color: context.colors.onSurface, fontSize: 15),
+        decoration: InputDecoration(
+          hintText: hint,
+          hintStyle: TextStyle(
+            color: context.appColors.mutedText.withValues(alpha: 0.6),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            icon,
+            size: 20,
+            color: context.appColors.mutedText,
+          ),
+          filled: true,
+          fillColor: context.appColors.cardBackground,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: context.appColors.cardBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(color: context.appColors.cardBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.danger),
+          ),
         ),
       ),
     );
@@ -359,19 +369,19 @@ class _DateTimeChip extends StatelessWidget {
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
+          color: context.appColors.cardBackground,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: context.appColors.cardBorder),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 18, color: Colors.white.withValues(alpha: 0.5)),
+            Icon(icon, size: 18, color: context.appColors.mutedText),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: context.colors.onSurface,
                 fontSize: 14,
               ),
             ),
