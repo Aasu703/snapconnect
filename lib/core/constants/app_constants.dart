@@ -21,6 +21,13 @@ final class AppConstants {
   static String get webJoinBaseUrl =>
       dotenv.env['WEB_JOIN_BASE_URL'] ?? 'https://your-web-app.vercel.app';
 
+  /// Google *web* OAuth client ID, passed as `serverClientId` so Android mints
+  /// an ID token whose audience the backend can verify.
+  static String get googleServerClientId =>
+      dotenv.env['GOOGLE_SERVER_CLIENT_ID'] ?? '';
+
+  static bool get hasGoogleSignInConfig => googleServerClientId.isNotEmpty;
+
   static bool get hasSupabaseConfig =>
       supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 

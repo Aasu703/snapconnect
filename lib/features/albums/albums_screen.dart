@@ -146,7 +146,7 @@ class _AlbumsScreenState extends State<AlbumsScreen> {
     );
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.appColors.screenBackground,
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: _refreshAlbums,
@@ -313,13 +313,13 @@ class _FilterPill extends StatelessWidget {
             color: selected ? AppColors.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: selected ? AppColors.primary : AppColors.border,
+              color: selected ? AppColors.primary : context.appColors.cardBorder,
             ),
           ),
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: selected ? Colors.white : AppColors.textSecondary,
+              color: selected ? Colors.white : context.appColors.mutedText,
               fontWeight: FontWeight.w600,
             ),
           ),

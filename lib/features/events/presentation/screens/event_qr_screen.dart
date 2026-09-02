@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:snapconnect/common/common.dart';
-import 'package:snapconnect/core/constants/app_constants.dart';
 import 'package:snapconnect/core/api/api.client.dart';
 import 'package:snapconnect/core/api/api.endpoints.dart';
+import 'package:snapconnect/core/utils/party_invite_link.dart';
 
 /// Premium QR code display screen with glassmorphism styling
 /// for sharing event join links.
@@ -45,11 +45,18 @@ class _EventQRScreenState extends State<EventQRScreen> {
     }
   }
 
-  String get _joinUrl =>
-      '${AppConstants.webJoinBaseUrl}/join/${widget.joinCode}';
+  /// Encoded into the QR so scanning opens the app straight on the join
+  /// screen instead of a browser.
+  String get _joinDeepLink => PartyInviteLink.deepLinkFor(widget.joinCode);
 
   void _share() {
-    Share.share('Join "$_eventName" on SnapConnect!\n$_joinUrl');
+    // Share the https form — recipients without the app installed can still
+    // open it, and the code is readable if they'd rather type it in.
+    Share.share(
+      'Join "$_eventName" on SnapConnect!\n'
+      '${PartyInviteLink.webLinkFor(widget.joinCode)}\n'
+      'Or enter code: ${widget.joinCode}',
+    );
   }
 
   @override
@@ -126,7 +133,7 @@ class _EventQRScreenState extends State<EventQRScreen> {
                         borderRadius: BorderRadius.circular(18),
                       ),
                       child: QrImageView(
-                        data: _joinUrl,
+                        data: _joinDeepLink,
                         version: QrVersions.auto,
                         size: 200,
                         backgroundColor: Colors.white,

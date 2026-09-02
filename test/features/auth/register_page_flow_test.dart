@@ -6,8 +6,10 @@ import 'package:snapconnect/common/theme/app_theme.dart';
 import 'package:snapconnect/core/di/injection_container.dart';
 import 'package:snapconnect/core/logger/app_logger.dart';
 import 'package:snapconnect/core/models/user_model.dart';
+import 'package:snapconnect/core/services/google_auth_service.dart';
 import 'package:snapconnect/features/auth/domain/repositories/auth_repository.dart';
 import 'package:snapconnect/features/auth/domain/usecases/check_auth_usecase.dart';
+import 'package:snapconnect/features/auth/domain/usecases/google_signin_usecase.dart';
 import 'package:snapconnect/features/auth/domain/usecases/login_usecase.dart';
 import 'package:snapconnect/features/auth/domain/usecases/logout_usecase.dart';
 import 'package:snapconnect/features/auth/domain/usecases/register_usecase.dart';
@@ -34,6 +36,44 @@ class _FakeAuthRepository implements IAuthRepository {
 
   @override
   Future<void> logout() async {}
+
+  @override
+  Future<Map<String, dynamic>> loginWithGoogle(String idToken) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> requestPasswordReset(String email) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> verifyResetOtp({
+    required String email,
+    required String otp,
+  }) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    throw UnimplementedError();
+  }
+}
+
+/// Google sign-in is never exercised by the register flow; this exists only to
+/// satisfy [AuthCubit]'s constructor.
+class _FakeGoogleAuthService implements GoogleAuthService {
+  @override
+  Future<String?> signIn() async => throw UnimplementedError();
+
+  @override
+  Future<void> signOut() async {}
 }
 
 class _NoopAppLogger implements AppLogger {
@@ -93,6 +133,8 @@ void main() {
       registerUseCase: RegisterUseCase(repo),
       checkAuthUseCase: CheckAuthUseCase(repo),
       logoutUseCase: LogoutUseCase(repo),
+      googleSignInUseCase: GoogleSignInUseCase(repo),
+      googleAuthService: _FakeGoogleAuthService(),
     );
   });
 
